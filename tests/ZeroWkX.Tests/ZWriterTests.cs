@@ -1,7 +1,6 @@
 using ZeroWkX.Reference;
-using NetTopologySuite.IO.ZeroWkX;
-using ZeroWkX.Tests.Fixtures;
 using NetTopologySuite.IO;
+using ZeroWkX.Tests.Fixtures;
 using Xunit;
 
 namespace ZeroWkX.Tests;

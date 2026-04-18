@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using NetTopologySuite.IO.ZeroWkX;
+using NetTopologySuite.IO;
 using ZeroWkX.Stages;
 using ZeroWkX.Naive;
 using ZeroWkX.Reference;

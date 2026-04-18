@@ -1,12 +1,12 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
-using NetTopologySuite.IO.ZeroWkX.Internal;
+using ZeroWkX.Internal;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NetTopologySuite.IO;
 
-namespace NetTopologySuite.IO.ZeroWkX;
+namespace NetTopologySuite.IO;
 
 /// <summary>
 /// Zero-copy WKB writer. For <see cref="PackedDoubleCoordinateSequence"/> inputs, the underlying

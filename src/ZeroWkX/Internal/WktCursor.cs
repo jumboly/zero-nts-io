@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace NetTopologySuite.IO.ZeroWkX.Internal;
+namespace ZeroWkX.Internal;
 
 internal ref struct WktCursor
 {

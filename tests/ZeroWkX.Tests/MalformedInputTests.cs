@@ -1,5 +1,5 @@
 using ZeroWkX.Stages;
-using NetTopologySuite.IO.ZeroWkX;
+using NetTopologySuite.IO;
 using ZeroWkX.Naive;
 using ZeroWkX.Tests.Fixtures;
 using NetTopologySuite.Geometries;

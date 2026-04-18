@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>ZeroWkX</PackageId>
-    <RootNamespace>NetTopologySuite.IO.ZeroWkX</RootNamespace>
+    <RootNamespace>NetTopologySuite.IO</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

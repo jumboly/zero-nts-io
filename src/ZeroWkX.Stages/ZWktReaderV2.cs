@@ -1,4 +1,4 @@
-using NetTopologySuite.IO.ZeroWkX.Internal;
+using ZeroWkX.Internal;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using NetTopologySuite.Geometries;
 
-namespace NetTopologySuite.IO.ZeroWkX;
+namespace NetTopologySuite.IO;
 
 /// <summary>
 /// WKT writer that formats each ordinate via <c>double.TryFormat</c> into a stack-allocated span

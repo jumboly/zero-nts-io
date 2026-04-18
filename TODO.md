@@ -4,8 +4,7 @@
 
 ## 公開するなら（blocking for publication）
 
-- [ ] `src/ZeroWkX/ZeroWkX.csproj` に NuGet metadata を追加
-  - `<PackageId>ZeroWkX</PackageId>`（既に設定済み — バージョン・説明の追加のみ必要）
+- [ ] `src/ZeroWkX/ZeroWkX.csproj` に NuGet metadata を追加（`<PackageId>ZeroWkX</PackageId>` は既設）
   - `<Version>0.1.0</Version>`
   - `<Description>...</Description>`
   - `<PackageReadmeFile>README.md</PackageReadmeFile>`

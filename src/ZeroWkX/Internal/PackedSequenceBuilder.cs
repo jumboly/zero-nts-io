@@ -1,7 +1,7 @@
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 
-namespace NetTopologySuite.IO.ZeroWkX.Internal;
+namespace ZeroWkX.Internal;
 
 /// <summary>
 /// Helpers for handing a freshly allocated <c>double[]</c> to NTS via
@@ -36,6 +36,6 @@ internal static class PackedSequenceBuilder
             return pf.Create(packed, dimension, measures);
         }
         throw new InvalidOperationException(
-            "NetTopologySuite.IO.ZeroWkX requires PackedCoordinateSequenceFactory.DoubleFactory — see NtsServicesFactory.CreatePacked() in ZeroWkX.Reference.");
+            "ZeroWkX requires PackedCoordinateSequenceFactory.DoubleFactory — see NtsServicesFactory.CreatePacked() in ZeroWkX.Reference.");
     }
 }

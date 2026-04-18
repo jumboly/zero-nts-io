@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace NetTopologySuite.IO.ZeroWkX.Internal;
+namespace ZeroWkX.Internal;
 
 /// <summary>
 /// Lightweight ASCII double parser covering the grammar <c>[+-]?\d+(\.\d+)?([eE][+-]?\d+)?</c>.

@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-namespace NetTopologySuite.IO.ZeroWkX.Internal;
+namespace ZeroWkX.Internal;
 
 /// <summary>Growable <c>double[]</c> buffer backed by <see cref="ArrayPool{T}"/>.</summary>
 internal struct PooledDoubleBuffer : IDisposable

@@ -21,7 +21,7 @@ ZeroWkX.slnx
 └─ bench/ZeroWkX.Benchmarks/   # BenchmarkDotNet
 ```
 
-`ZeroWkX` のみが利用者向け API。公開 namespace は `NetTopologySuite.IO.ZeroWkX` で、NTS 公式 `WKTReader` / `WKBReader` と同じ namespace 階層に並ぶ。`ZeroWkX.Stages` / `ZeroWkX.Naive` / `ZeroWkX.Reference` はベンチ・テスト専用で、パッケージとしての公開対象外。
+`ZeroWkX` のみが利用者向け API。公開クラスは NTS 公式 `WKTReader` / `WKBReader` と同じ `namespace NetTopologySuite.IO` に直接並べ、`using NetTopologySuite.IO;` 1 行でドロップイン代替を可能にしている（ケーシングが違うので記号衝突なし: `WKTReader` vs `ZWktReader`）。`ZeroWkX.Stages` / `ZeroWkX.Naive` / `ZeroWkX.Reference` はベンチ・テスト専用で、パッケージとしての公開対象外。
 
 ### 出力型
 
@@ -61,7 +61,7 @@ dotnet run -c Release --project bench/ZeroWkX.Benchmarks -- --filter '*WktRead*'
 ## 使い方
 
 ```csharp
-using NetTopologySuite.IO.ZeroWkX;
+using NetTopologySuite.IO;
 using NetTopologySuite;
 using NetTopologySuite.Geometries.Implementation;
 
@@ -176,4 +176,4 @@ NTS 公式出力との**ビット単位の座標一致**を `BitConverter.Double
 - **なぜ `ArrayPool` を最終座標配列に使わないか**: `PackedCoordinateSequenceFactory.Create(double[], dim, measures)` は配列の**所有権を受け取る**ため、NTS の `Geometry` 寿命中は解放できない。スクラッチ（成長バッファ・リング集計）のみを pool 化。
 - **なぜ WKT Writer / WKB Writer は 1 バリアントか**: 書き出しは構造が単純で、段階ごとの差がベンチで見えない。最終形 1 本に絞った。
 - **なぜ `Vector128.Shuffle` を使い `Avx2.Shuffle` を使わないか**: `Vector128.Shuffle` はクロスプラットフォーム（x86 の `pshufb` / ARM の `tbl` にそれぞれマップされる）で、Apple Silicon を含めどこでも SIMD 経路を使える。AVX2 固定にするとベンチ環境を x86 に縛ることになる。
-- **なぜ公開 namespace が `NetTopologySuite.IO.ZeroWkX` か**: NTS 公式 `NetTopologySuite.IO.WKTReader` と同じ namespace 階層に並べて、ドロップイン代替の位置付けを利用者の import 文で明示するため。ただし NuGet `PackageId` は独立した `ZeroWkX` で、NTS 公式パッケージとは無関係。
+- **なぜ公開クラスを `namespace NetTopologySuite.IO` 直下に置くか**: NTS 公式 `WKTReader` / `WKBReader` と同一 namespace に並べて、`using NetTopologySuite.IO;` 1 行でドロップイン代替を可能にするため。型名のケーシングが違う（`WKTReader` vs `ZWktReader`）ので記号衝突は起きない。NuGet `PackageId` は独立した `ZeroWkX` で、NTS 公式パッケージとは無関係。Internal ヘルパは NTS namespace への侵入を避けるため `namespace ZeroWkX.Internal` に分離。

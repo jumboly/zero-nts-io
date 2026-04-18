@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
-namespace NetTopologySuite.IO.ZeroWkX.Internal;
+namespace ZeroWkX.Internal;
 
 /// <summary>
 /// Fast path for copying WKB coordinate blocks into a <c>double[]</c>.

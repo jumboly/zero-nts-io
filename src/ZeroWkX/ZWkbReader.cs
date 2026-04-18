@@ -1,10 +1,10 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
-using NetTopologySuite.IO.ZeroWkX.Internal;
+using ZeroWkX.Internal;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
-namespace NetTopologySuite.IO.ZeroWkX;
+namespace NetTopologySuite.IO;
 
 /// <summary>
 /// Fast WKB reader: unsafe / SIMD coordinate block copy. LE blocks are reinterpreted via

@@ -1,9 +1,9 @@
 using System.Buffers;
-using NetTopologySuite.IO.ZeroWkX.Internal;
+using ZeroWkX.Internal;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
-namespace NetTopologySuite.IO.ZeroWkX;
+namespace NetTopologySuite.IO;
 
 /// <summary>
 /// Fast WKT reader: writes parsed ordinates directly into a packed <c>double[]</c>

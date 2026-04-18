@@ -1,9 +1,8 @@
 using BenchmarkDotNet.Attributes;
-using NetTopologySuite.IO.ZeroWkX;
+using NetTopologySuite.IO;
 using ZeroWkX.Stages;
 using ZeroWkX.Reference;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
 
 namespace ZeroWkX.Benchmarks;
 

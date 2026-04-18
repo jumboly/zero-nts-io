@@ -1,10 +1,9 @@
 using BenchmarkDotNet.Attributes;
-using NetTopologySuite.IO.ZeroWkX;
+using NetTopologySuite.IO;
 using ZeroWkX.Stages;
 using ZeroWkX.Naive;
 using ZeroWkX.Reference;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
 
 namespace ZeroWkX.Benchmarks;
 
@@ -69,7 +68,7 @@ public class NaturalDataBenchmarks
         var dir = AppContext.BaseDirectory;
         for (int i = 0; i < 20 && !string.IsNullOrEmpty(dir); i++)
         {
-            if (File.Exists(Path.Combine(dir, "NetTopologySuite.IO.ZeroWkX.slnx")) || File.Exists(Path.Combine(dir, "NetTopologySuite.IO.ZeroWkX.sln")))
+            if (File.Exists(Path.Combine(dir, "ZeroWkX.slnx")) || File.Exists(Path.Combine(dir, "ZeroWkX.sln")))
             {
                 var candidate = Path.Combine(dir, "bench", "Data", fileName);
                 if (File.Exists(candidate)) return candidate;
