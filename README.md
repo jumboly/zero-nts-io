@@ -154,6 +154,12 @@ NTS 公式出力との**ビット単位の座標一致**を `BitConverter.Double
 
 ---
 
+## ライセンス
+
+**BSD 3-Clause License**（依存先の NetTopologySuite 本家に合わせた）。詳細は [`LICENSE`](LICENSE)。
+
+`bench/Data/` 配下の実地理データのみ、国土数値情報利用規約に基づく別ライセンスで配布されている（出典明示必須）。詳細は [`bench/Data/README.md`](bench/Data/README.md)。
+
 ## 関連ドキュメント
 
 - [`docs/nts-quirks.md`](docs/nts-quirks.md) — 実装・テスト過程で判明した NTS 2.6 の仕様・挙動のまとめ。MultiPoint 外側タイプコードの特殊扱いや `NtsGeometryServices.Instance` の Z/M 落としなど、互換実装するなら必読

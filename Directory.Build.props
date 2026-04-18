@@ -7,4 +7,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <Copyright>Copyright (c) 2026 FastNtsWk contributors</Copyright>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/</PackageProjectUrl>
+    <Authors>FastNtsWk contributors</Authors>
+  </PropertyGroup>
 </Project>
