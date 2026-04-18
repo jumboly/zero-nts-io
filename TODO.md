@@ -29,6 +29,11 @@
 ## コード品質（細部）
 
 - [ ] `Naive WKT Writer` の NaN / Infinity 出力が NTS と完全一致するかの直接テスト（現状は Reader round-trip での間接検証のみ）
+- [ ] `src/ZeroWkX/Internal/PooledDoubleBuffer.cs` の `Finish()` 内のコピー削減余地を調査
+  - WKB Reader は count を事前に読めるので `new double[count * dim]` で pool を経由しない（現状すでに最適）
+  - WKT Reader は count 未知のため pool で成長させる必要あり。`Finish()` で `ArrayPool` の over-sized 配列から right-sized 配列へ 1 回コピーしている（`PackedCoordinateSequenceFactory` は所有権を受け取り解放できないため pool 配列を直接渡せない）
+  - 候補: (a) WKT も事前に座標数をカウントする 2-pass 解析（小さい geometry では退行リスク）／(b) `_count == _buf.Length` の場合のみコピー省略（pool が右サイズ返す保証は無いので効果限定的）／(c) WKT でも容易にサイズが分かるケース（単一 POINT、ring prefix ヒューリスティクス）だけ特別パス
+  - 実益計測は `WktReadBenchmarks` の Allocated 列で確認
 
 ---
 
