@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/bench/">
+    <Project Path="bench/FastNtsWk.Benchmarks/FastNtsWk.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/FastNtsWk.Abstractions/FastNtsWk.Abstractions.csproj" />
+    <Project Path="src/FastNtsWk.Fast/FastNtsWk.Fast.csproj" />
+    <Project Path="src/FastNtsWk.Naive/FastNtsWk.Naive.csproj" />
+    <Project Path="src/FastNtsWk.Reference/FastNtsWk.Reference.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FastNtsWk.Tests/FastNtsWk.Tests.csproj" />
+  </Folder>
+</Solution>
