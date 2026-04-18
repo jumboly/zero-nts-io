@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>ZeroWkX</PackageId>
+    <RootNamespace>NetTopologySuite.IO.ZeroWkX</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ZeroWkX.Stages" />
+    <InternalsVisibleTo Include="ZeroWkX.Tests" />
+    <InternalsVisibleTo Include="ZeroWkX.Benchmarks" />
+  </ItemGroup>
+
+</Project>

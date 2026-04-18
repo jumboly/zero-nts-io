@@ -4,11 +4,12 @@
 
 ## 公開するなら（blocking for publication）
 
-- [ ] 各 csproj に NuGet metadata を追加
-  - `<PackageId>FastNtsWk.Fast</PackageId>` 等、プロジェクトごとに
+- [ ] `src/ZeroWkX/ZeroWkX.csproj` に NuGet metadata を追加
+  - `<PackageId>ZeroWkX</PackageId>`（既に設定済み — バージョン・説明の追加のみ必要）
   - `<Version>0.1.0</Version>`
   - `<Description>...</Description>`
   - `<PackageReadmeFile>README.md</PackageReadmeFile>`
+- [ ] 公開対象は `ZeroWkX` のみ。`ZeroWkX.Stages` / `ZeroWkX.Naive` / `ZeroWkX.Reference` は `<IsPackable>false</IsPackable>` を付与（現在は未設定だが NuGet に出ない保険）
 - [ ] `Directory.Build.props` の `<PackageProjectUrl>` を実際の公開先 URL に更新（現状 placeholder `https://github.com/`）
 - [ ] `CHANGELOG.md` を新設し `0.1.0` エントリを入れる
 
@@ -29,8 +30,6 @@
 ## コード品質（細部）
 
 - [ ] `Naive WKT Writer` の NaN / Infinity 出力が NTS と完全一致するかの直接テスト（現状は Reader round-trip での間接検証のみ）
-- [ ] `Abstractions.IWktReader.Read(string)` / `IWkbReader.Read(byte[])` のデフォルト実装が全実装でオーバーライドされ使われていない。削るか活用するか判断
-- [ ] README / CLAUDE.md / `plans/nts-wkt-wkb-tingly-teacup.md` の記述ゆれ整理（実装が先行して更新が追いつかなかった箇所あり）
 
 ---
 
