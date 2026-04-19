@@ -30,40 +30,58 @@ public sealed class ZWkbReader
     public Geometry Read(ReadOnlySpan<byte> wkb)
     {
         int pos = 0;
-        return ReadGeometry(wkb, ref pos);
+        int capturedSrid = 0;
+        var g = ReadGeometry(wkb, ref pos, ref capturedSrid);
+        // Why: PostGIS EWKB carries SRID on the root type only. Propagate to the returned geometry;
+        // NTS's SRID setter recurses into children for collection types.
+        if (capturedSrid != 0) g.SRID = capturedSrid;
+        return g;
     }
 
-    private Geometry ReadGeometry(ReadOnlySpan<byte> buf, ref int pos)
+    private Geometry ReadGeometry(ReadOnlySpan<byte> buf, ref int pos, ref int capturedSrid)
     {
         byte bo = buf[pos++];
         if (bo != 0 && bo != 1) throw new FormatException($"Invalid byte order: {bo}");
         bool le = bo == 1;
 
         uint rawType = ReadUInt32(buf, ref pos, le);
-        if ((rawType & 0xE0000000u) != 0)
-            throw new FormatException("EWKB (PostGIS SRID/Z/M high-bit flags) is not supported; use OGC ISO WKB.");
-
-        uint ordCode = rawType / 1000u;
-        uint baseType = rawType % 1000u;
-        int dim, measures;
-        switch (ordCode)
+        uint ogc = rawType;
+        bool hiZ = false, hiM = false;
+        // Why: EWKB encodes SRID / Z / M via high-bit flags, orthogonal to the OGC 1000/2000/3000
+        // offsets. Keep the common OGC-ISO path branch-free by guarding all EWKB decoding under one
+        // mask check; children in OGC geometries never re-enter this block.
+        if ((rawType & EwkbFlags.Any) != 0)
         {
-            case 0: dim = 2; measures = 0; break;
-            case 1: dim = 3; measures = 0; break;
-            case 2: dim = 3; measures = 1; break;
-            case 3: dim = 4; measures = 1; break;
-            default: throw new FormatException($"Unknown ordinate code: {ordCode}");
+            if ((rawType & EwkbFlags.Srid) != 0)
+            {
+                int srid = (int)ReadUInt32(buf, ref pos, le);
+                // Why: only the outermost geometry's SRID is meaningful; PostGIS omits it on children
+                // but some producers repeat it. Capture the first one seen (the root).
+                if (capturedSrid == 0) capturedSrid = srid;
+            }
+            hiZ = (rawType & EwkbFlags.Z) != 0;
+            hiM = (rawType & EwkbFlags.M) != 0;
+            ogc = rawType & EwkbFlags.OgcMask;
         }
+
+        uint ordCode = ogc / 1000u;
+        if (ordCode > 3) throw new FormatException($"Unknown ordinate code: {ordCode}");
+        uint baseType = ogc % 1000u;
+
+        bool isZ = hiZ || ordCode == 1 || ordCode == 3;
+        bool isM = hiM || ordCode == 2 || ordCode == 3;
+        int dim = 2 + (isZ ? 1 : 0) + (isM ? 1 : 0);
+        int measures = isM ? 1 : 0;
 
         return baseType switch
         {
             1 => ReadPoint(buf, ref pos, le, dim, measures),
             2 => ReadLineString(buf, ref pos, le, dim, measures),
             3 => ReadPolygon(buf, ref pos, le, dim, measures),
-            4 => ReadMulti(buf, ref pos, le, kind: 4),
-            5 => ReadMulti(buf, ref pos, le, kind: 5),
-            6 => ReadMulti(buf, ref pos, le, kind: 6),
-            7 => ReadCollection(buf, ref pos, le),
+            4 => ReadMulti(buf, ref pos, le, kind: 4, ref capturedSrid),
+            5 => ReadMulti(buf, ref pos, le, kind: 5, ref capturedSrid),
+            6 => ReadMulti(buf, ref pos, le, kind: 6, ref capturedSrid),
+            7 => ReadCollection(buf, ref pos, le, ref capturedSrid),
             _ => throw new FormatException($"Unknown WKB geometry type: {baseType}"),
         };
     }
@@ -104,7 +122,7 @@ public sealed class ZWkbReader
         return _factory.CreatePolygon(rings[0], holes);
     }
 
-    private Geometry ReadMulti(ReadOnlySpan<byte> buf, ref int pos, bool le, int kind)
+    private Geometry ReadMulti(ReadOnlySpan<byte> buf, ref int pos, bool le, int kind, ref int capturedSrid)
     {
         int n = (int)ReadUInt32(buf, ref pos, le);
         switch (kind)
@@ -112,30 +130,30 @@ public sealed class ZWkbReader
             case 4:
             {
                 var arr = new Point[n];
-                for (int i = 0; i < n; i++) arr[i] = (Point)ReadGeometry(buf, ref pos);
+                for (int i = 0; i < n; i++) arr[i] = (Point)ReadGeometry(buf, ref pos, ref capturedSrid);
                 return _factory.CreateMultiPoint(arr);
             }
             case 5:
             {
                 var arr = new LineString[n];
-                for (int i = 0; i < n; i++) arr[i] = (LineString)ReadGeometry(buf, ref pos);
+                for (int i = 0; i < n; i++) arr[i] = (LineString)ReadGeometry(buf, ref pos, ref capturedSrid);
                 return _factory.CreateMultiLineString(arr);
             }
             case 6:
             {
                 var arr = new Polygon[n];
-                for (int i = 0; i < n; i++) arr[i] = (Polygon)ReadGeometry(buf, ref pos);
+                for (int i = 0; i < n; i++) arr[i] = (Polygon)ReadGeometry(buf, ref pos, ref capturedSrid);
                 return _factory.CreateMultiPolygon(arr);
             }
             default: throw new InvalidOperationException();
         }
     }
 
-    private GeometryCollection ReadCollection(ReadOnlySpan<byte> buf, ref int pos, bool le)
+    private GeometryCollection ReadCollection(ReadOnlySpan<byte> buf, ref int pos, bool le, ref int capturedSrid)
     {
         int n = (int)ReadUInt32(buf, ref pos, le);
         var arr = new Geometry[n];
-        for (int i = 0; i < n; i++) arr[i] = ReadGeometry(buf, ref pos);
+        for (int i = 0; i < n; i++) arr[i] = ReadGeometry(buf, ref pos, ref capturedSrid);
         return _factory.CreateGeometryCollection(arr);
     }
 

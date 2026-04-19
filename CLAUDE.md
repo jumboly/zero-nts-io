@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # ビルド（Release が基本、net10.0）
 dotnet build -c Release
 
-# 全テスト（1254/1254 通過が期待値。退行は即バグ）
+# 全テスト（1287/1287 通過が期待値。退行は即バグ）
 dotnet test tests/ZeroNtsIo.Tests -c Release
 
 # 1 クラスだけ
@@ -86,7 +86,7 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroNtsIo.Stages/Internal/`（
 
 ## テスト
 
-`tests/ZeroNtsIo.Tests/` 配下、合計 **1,254 件**が NTS をオラクルに比較する。構成:
+`tests/ZeroNtsIo.Tests/` 配下、合計 **1,287 件**が NTS をオラクルに比較する。構成:
 
 | ファイル | 役割 |
 |---------|------|
@@ -94,8 +94,9 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroNtsIo.Stages/Internal/`（
 | `PropertyBasedTests` | seeded ジェネレータ（`Fixtures/GeometryGenerator.cs`）× 全実装。カバレッジの主柱 |
 | `WriterInteropTests` | 全 Writer × 全 Reader のクロスラウンドトリップ |
 | `NumericEdgeTests` | NaN / ±∞ / subnormal / -0.0 / 科学表記 / 大小文字・空白 |
-| `MalformedInputTests` | WKT/WKB バリデーション。EWKB と truncate 入力は例外必須 |
-| `EdgeCaseTests` | EMPTY / ネスト GC / 負のゼロ / EWKB 拒否 |
+| `MalformedInputTests` | WKT/WKB バリデーション。truncate 入力は例外必須。EWKB は `NaiveWkbReader` / `ZWkbReaderV1` のみ拒否（公開版 `ZWkbReader` は受理） |
+| `EdgeCaseTests` | EMPTY / ネスト GC / 負のゼロ / POINT EMPTY ラウンドトリップ |
+| `EwkbTests` | EWKB (PostGIS) 読み取り: SRID / 旧 PostGIS 高位ビット Z/M / LE/BE / `ZWkbWriter` の `handleSRID` 出力ラウンドトリップ |
 | `ZWriterTests` | NTS Reader で読み返すラウンドトリップ |
 | `RegressionDataTests` | 国土数値情報（CC BY 4.0 範囲）の Point/Line/Polygon 計 8 フィクスチャ × 全 Reader/Writer。実データ退行の検知。`bench/Data/*.wkb` を `Fixtures/RealDataLoader.cs` で解決 |
 
@@ -128,7 +129,10 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroNtsIo.Stages/Internal/`（
 
 ## スコープ
 
-- **OGC ISO WKB のみ**。EWKB（PostGIS SRID/Z/M 高位ビット、マスク `0xE0000000`）は `FormatException` で明示的に拒否
+- **OGC ISO WKB 既定、EWKB 互換 Reader / 任意 Writer**。
+  - Reader: 公開版 `ZWkbReader` は EWKB (PostGIS) を受理する。`0x20000000` の SRID ビットは `Geometry.SRID` に反映、旧 PostGIS の `0x80000000` (Z) / `0x40000000` (M) 高位ビットは 1000 オフセットと同等に dim/measures へ合流
+  - Writer: `ZWkbWriter.Write(g, bo, handleSRID: true)` で EWKB 形式（1000 オフセット + `0x20000000` SRID フラグ）を出力。既定の `handleSRID: false` 経路は現状通り OGC ISO。高位ビット Z/M 形式の出力はしない（NTS も同じ）
+  - `NaiveWkbReader` / `ZWkbReaderV1` は教材的役割のため厳密 OGC ISO のまま（EWKB は `FormatException`）
 - 空間演算（intersects, buffer 等）は扱わない。I/O のみ。演算は NTS に委譲
 - `POINT EMPTY` の WKB は全 ordinates が NaN（OGC 仕様）。NTS もそう出力・解釈する
 

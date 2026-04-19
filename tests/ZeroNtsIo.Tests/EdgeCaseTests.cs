@@ -51,13 +51,16 @@ public class EdgeCaseTests
     }
 
     [Fact]
-    public void EWKB_srid_flag_is_rejected()
+    public void EWKB_srid_flag_is_accepted_and_preserved()
     {
-        // Minimal EWKB header: byte-order=1, type=1 | 0x20000000 (SRID flag set).
-        byte[] ewkb = [0x01, 0x01, 0x00, 0x00, 0x20, 0xE6, 0x10, 0x00, 0x00, /* srid */
+        // Why: EWKB (PostGIS) carries SRID via the 0x20000000 type-code high bit. ZWkbReader
+        // mirrors NTS: accept the flag and surface the SRID on the returned geometry.
+        byte[] ewkb = [0x01, 0x01, 0x00, 0x00, 0x20, 0xE6, 0x10, 0x00, 0x00, /* srid 4326 */
                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,             /* x */
                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];            /* y */
-        Assert.Throws<FormatException>(() => _fastWkb.Read(ewkb));
+        var g = _fastWkb.Read(ewkb);
+        Assert.Equal("Point", g.GeometryType);
+        Assert.Equal(4326, g.SRID);
     }
 
     [Theory]

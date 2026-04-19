@@ -77,7 +77,7 @@ ZeroNtsIo.slnx
 | 次元 | XY / XYZ / XYM / XYZM |
 | WKB | OGC ISO（型コード 1001/2001/3001 等） LE / BE 両対応 |
 | WKT | 標準 + 大文字小文字・空白揺れ・`EMPTY` 許容 |
-| 非対応 | EWKB (PostGIS SRID 埋め込み) は明示的に例外 |
+| EWKB | PostGIS SRID 埋め込み + 旧 PostGIS Z/M 高位ビットを Reader が受理、`ZWkbWriter.Write(g, bo, handleSRID: true)` で SRID 付き出力 |
 
 ---
 

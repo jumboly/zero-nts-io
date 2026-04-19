@@ -64,10 +64,10 @@ public class MalformedInputTests
     }
 
     [Fact]
-    public void Ewkb_srid_flag_is_rejected_by_fast_readers()
+    public void Ewkb_srid_flag_is_rejected_by_strict_ogc_readers()
     {
-        // Why: PostGIS EWKB encodes SRID via the 0x20000000 type-code high bit. We target OGC
-        // ISO only; silently ignoring the flag would misread geometries with SRID data.
+        // Why: Naive / stage V1 readers are educational baselines that stay strict-OGC. The public
+        // ZWkbReader accepts EWKB — its positive-path coverage lives in EwkbTests.
         byte[] ewkb =
         [
             0x01,                                           // LE
@@ -77,7 +77,6 @@ public class MalformedInputTests
             0, 0, 0, 0, 0, 0, 0, 0,                         // Y
         ];
         Assert.Throws<FormatException>(() => new ZWkbReaderV1(Samples.Services).Read(ewkb));
-        Assert.Throws<FormatException>(() => new ZWkbReader(Samples.Services).Read(ewkb));
         Assert.Throws<FormatException>(() => new NaiveWkbReader(Samples.Services).Read(ewkb));
     }
 

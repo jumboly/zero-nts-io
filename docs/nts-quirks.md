@@ -189,11 +189,19 @@ OGC ISO WKB と EWKB は一見同じヘッダだが、EWKB は型コードの上
 
 | ビット | 意味 | マスク |
 |--------|------|--------|
-| 0x20000000 | SRID 埋め込み | `(type & 0x20000000) != 0` |
+| 0x20000000 | SRID 埋め込み（type 直後に 4 バイト int32） | `(type & 0x20000000) != 0` |
 | 0x40000000 | M dimension (旧 PostGIS) | `(type & 0x40000000) != 0` |
 | 0x80000000 | Z dimension (旧 PostGIS) | `(type & 0x80000000) != 0` |
 
-NTS は EWKB も部分的に解釈するが、このライブラリは **OGC ISO 専用**で `(rawType & 0xE0000000) != 0` なら即座に `FormatException` を投げる方針。SRID を黙って無視すると別地物として扱うバグになり得るため。
+**公開版 `ZWkbReader` の挙動** (NTS `WKBReader` と同じ):
+- `0x1FFFFFFF` マスクで下位 29 bit を OGC ISO として解釈（1000 オフセットはそのまま）
+- `0x20000000` が立っていれば type の 4 バイト直後で SRID を 1 回読み、ルート Geometry の `SRID` に設定する（ネストした子の SRID フィールドは読み飛ばす — PostGIS の慣例どおり root のみ有効）
+- `0x80000000` / `0x40000000` が立っていれば dim/measures を OGC 1000 オフセットと同じ要領で加算
+- 両エンコーディング（1000 オフセット + 高位ビット）が同時に立っていても OR 統合する
+
+**`ZWkbWriter`**: 既定は OGC ISO 出力。`Write(g, bo, handleSRID: true)` を指定し、かつ `g.SRID > 0` のとき外側タイプに `0x20000000` を立てて SRID を書く（内側ジオメトリには付けない）。旧 PostGIS 高位ビット Z/M 形式は出力しない（1000 オフセット形式で統一）。
+
+**`NaiveWkbReader` / `ZWkbReaderV1`** は教材的位置付けのため厳密 OGC ISO のまま（`0xE0000000` マスクで `FormatException`）。段階ベンチで「EWKB 分岐が速度に与えた影響」を測りたい場合は V1 と公開版を比較する。
 
 ---
 
@@ -206,4 +214,4 @@ NTS は EWKB も部分的に解釈するが、このライブラリは **OGC ISO
 5. WKT 数値パーサは `NaN` / `Infinity` / `-Infinity` リテラルを受け取れるようにする
 6. WKT トークン分割で `\t \r \n` も空白として扱う
 7. MultiPoint WKT の 2 種類の書式 `(1 2, 3 4)` / `((1 2), (3 4))` の両方を受理する
-8. EWKB フラグ（0xE0000000）が立っていたら明示的に拒否する
+8. EWKB フラグ（0xE0000000）を解釈する: `0x20000000` は SRID を Geometry.SRID へ、`0x80000000` / `0x40000000` は dim/measures に合流させる

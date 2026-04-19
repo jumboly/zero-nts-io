@@ -36,11 +36,7 @@
 
 着手前に「何を目指すか」を決める必要があるもの。`/plan` する際にサブタスクへ分解する。
 
-- [ ] **EWKB（PostGIS 形式）対応** — 現状は `0xE0000000` マスクで即 `FormatException`。NTS 本家 `WKBReader` は EWKB を部分的に読めるので、互換性のギャップになっている
-  - 選択肢: (a) 現状維持 = OGC ISO 専用 / (b) SRID ビット（`0x20000000`）だけ読んで `Geometry.SRID` に載せる最小対応 / (c) 旧 PostGIS の Z/M 高位ビット（`0x40000000 / 0x80000000`）も含めたフル対応
-  - 論点: Npgsql の PostGIS 型プロバイダ経由だと EWKB が標準で来るので、ドロップイン代替としての使い勝手に直結。一方でパース経路に分岐が入り、ゼロコピー経路（WKB-LE = packed レイアウトの一致）が崩れる懸念あり
-  - 実装ヒント: ヘッダを読んだ直後に SRID 4 バイトを消費してから既存の座標ブロック読み取りに合流できれば、ホットループはそのまま使える
-  - 参考: `docs/nts-quirks.md#ewkb-postgis-の識別`、`tests/ZeroNtsIo.Tests/EdgeCaseTests.cs:54` の拒否テスト
+- [x] **EWKB（PostGIS 形式）対応** — 公開版 `ZWkbReader` が SRID + 旧 PostGIS Z/M 高位ビットをフル受理、`ZWkbWriter.Write` に `handleSRID` オプション追加（`tests/ZeroNtsIo.Tests/EwkbTests.cs` が 33 ケース担保）。`NaiveWkbReader` / `ZWkbReaderV1` は教材用途で厳密 OGC ISO のまま
 
 - [ ] **段階的バージョンの整理** — `src/ZeroNtsIo.Stages/` (V1/V2/V3) の扱いを決める
   - 選択肢: (a) 現状維持 / (b) 役割と寿命を `docs/` で明文化 / (c) V1-V3 を刈り込む（例: ベンチで説明に使う段だけ残す）

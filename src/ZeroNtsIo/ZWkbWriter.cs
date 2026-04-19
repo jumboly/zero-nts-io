@@ -15,14 +15,22 @@ namespace ZeroNtsIo;
 public sealed class ZWkbWriter
 {
     public byte[] Write(Geometry geometry, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        => Write(geometry, byteOrder, handleSRID: false);
+
+    public byte[] Write(Geometry geometry, ByteOrder byteOrder, bool handleSRID)
     {
         var bw = new ArrayBufferWriter<byte>(EstimateSize(geometry));
         bool le = byteOrder == ByteOrder.LittleEndian;
-        WriteGeometry(bw, geometry, le);
+        // Why: EWKB carries the SRID on the root type only; children share the parent's SRID. Passing
+        // srid=0 into nested WriteGeometry calls suppresses the flag on children, matching NTS output.
+        // SRIDs are positive EPSG codes; NTS defaults uninitialized Geometry.SRID to -1, so check >0
+        // to avoid emitting a bogus flag for factory-default geometries.
+        int srid = handleSRID && geometry.SRID > 0 ? geometry.SRID : 0;
+        WriteGeometry(bw, geometry, le, srid);
         return bw.WrittenSpan.ToArray();
     }
 
-    private static void WriteGeometry(ArrayBufferWriter<byte> bw, Geometry g, bool le)
+    private static void WriteGeometry(ArrayBufferWriter<byte> bw, Geometry g, bool le, int srid = 0)
     {
         var (baseType, seq) = Classify(g);
         var (ordCode, dim) = OrdinateOf(seq);
@@ -31,8 +39,10 @@ public sealed class ZWkbWriter
         // dimension offset. Matching NTS exactly is required for byte-level interop.
         bool suppressOrdOffset = g is MultiPoint;
         uint typeCode = (uint)baseType + (suppressOrdOffset ? 0u : ordCode * 1000u);
+        if (srid != 0) typeCode |= EwkbFlags.Srid;
         WriteByte(bw, (byte)(le ? 1 : 0));
         WriteUInt32(bw, typeCode, le);
+        if (srid != 0) WriteUInt32(bw, (uint)srid, le);
 
         switch (g)
         {
