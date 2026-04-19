@@ -4,13 +4,14 @@
 
 ## 公開するなら（blocking for publication）
 
-- [ ] `src/ZeroNtsIo/ZeroNtsIo.csproj` に NuGet metadata を追加（`<PackageId>ZeroNtsIo</PackageId>` は既設）
+- [x] `src/ZeroNtsIo/ZeroNtsIo.csproj` に NuGet metadata を追加（`<PackageId>ZeroNtsIo</PackageId>` は既設）
   - `<Version>0.1.0</Version>`
   - `<Description>...</Description>`
   - `<PackageReadmeFile>README.md</PackageReadmeFile>`
-- [ ] 公開対象は `ZeroNtsIo` のみ。`ZeroNtsIo.Stages` / `ZeroNtsIo.Naive` / `ZeroNtsIo.Reference` は `<IsPackable>false</IsPackable>` を付与（現在は未設定だが NuGet に出ない保険）
-- [ ] `Directory.Build.props` の `<PackageProjectUrl>` を実際の公開先 URL に更新（現状 placeholder `https://github.com/`）
-- [ ] `CHANGELOG.md` を新設し `0.1.0` エントリを入れる
+  - `<PackageTags>` も追加、`..\..\README.md` を `None Include` で同梱
+- [x] 公開対象は `ZeroNtsIo` のみ。`ZeroNtsIo.Stages` / `ZeroNtsIo.Naive` / `ZeroNtsIo.Reference` に `<IsPackable>false</IsPackable>` を付与
+- [x] `Directory.Build.props` の `<PackageProjectUrl>` を `https://github.com/jumboly/zero-nts-io` へ更新、`<RepositoryUrl>` / `<RepositoryType>` も追加
+- [x] `CHANGELOG.md` を新設し `0.1.0` エントリを入れる
 
 ## CI を入れるなら
 
@@ -30,6 +31,20 @@
   - 1M 座標の LineString（キャッシュ外 / DRAM 律速領域）
   - 深いネスト `GeometryCollection`（再帰コスト）
   - 100 穴の Polygon（リング集計ループ）
+
+## 検討中（要スコープ明確化）
+
+着手前に「何を目指すか」を決める必要があるもの。`/plan` する際にサブタスクへ分解する。
+
+- [ ] **段階的バージョンの整理** — `src/ZeroNtsIo.Stages/` (V1/V2/V3) の扱いを決める
+  - 選択肢: (a) 現状維持 / (b) 役割と寿命を `docs/` で明文化 / (c) V1-V3 を刈り込む（例: ベンチで説明に使う段だけ残す）
+  - 論点: Stages はベンチで「各段の純効果」を見せる教材。将来のメンテ負担と学習価値のトレードオフ
+- [ ] **ベンチマークの整理** — `§ベンチマーク拡張` とは別に、既存ベンチの構造を見直す
+  - 選択肢: (a) ベンチクラスの重複削減・命名統一 / (b) `docs/bench-policy.md` と実ベンチの齟齬洗い出し / (c) `FixtureSource` 共有状態の整理
+  - 論点: クラス数が増えたのでシナリオ別（日常/退行/リリース）に実行しやすい構成にしたい
+- [ ] **README の整理** — 現状長め（ベンチ表 × 複数セクション）
+  - 選択肢: (a) 節構成見直しのみ / (b) 詳細を `docs/` に移し README はピッチ + 代表数値 + リンク集 / (c) 英語版追加
+  - 論点: NuGet ページに出るのは README の先頭付近。最初のスクロール 1 画面で「何者か / どれだけ速いか」が伝わるべき
 
 ## コード品質（細部）
 

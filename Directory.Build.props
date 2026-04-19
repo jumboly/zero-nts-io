@@ -11,7 +11,9 @@
   <PropertyGroup>
     <Copyright>Copyright (c) 2026 ZeroNtsIo contributors</Copyright>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/jumboly/zero-nts-io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jumboly/zero-nts-io.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <Authors>ZeroNtsIo contributors</Authors>
   </PropertyGroup>
 </Project>

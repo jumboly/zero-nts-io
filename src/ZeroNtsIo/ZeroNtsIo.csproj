@@ -6,7 +6,15 @@
     <Nullable>enable</Nullable>
     <PackageId>ZeroNtsIo</PackageId>
     <RootNamespace>ZeroNtsIo</RootNamespace>
+    <Version>0.1.0</Version>
+    <Description>Drop-in replacement for NetTopologySuite's WKTReader/WKBReader/WKTWriter/WKBWriter. Returns plain NetTopologySuite.Geometries.Geometry with 3-4x (WKT) and 5-20x (WKB) speedup via span-based parsing, a custom ASCII double parser, SIMD byte-swap, and zero-copy PackedCoordinateSequence ownership transfer.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>nts;nettopologysuite;wkt;wkb;gis;geometry;spatial;io;parser;packed</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
