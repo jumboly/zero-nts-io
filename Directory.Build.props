@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Copyright>Copyright (c) 2026 ZeroWkX contributors</Copyright>
+    <Copyright>Copyright (c) 2026 ZeroNtsIo contributors</Copyright>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/</PackageProjectUrl>
-    <Authors>ZeroWkX contributors</Authors>
+    <Authors>ZeroNtsIo contributors</Authors>
   </PropertyGroup>
 </Project>

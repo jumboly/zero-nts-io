@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/bench/">
+    <Project Path="bench/ZeroNtsIo.Benchmarks/ZeroNtsIo.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ZeroNtsIo/ZeroNtsIo.csproj" />
+    <Project Path="src/ZeroNtsIo.Stages/ZeroNtsIo.Stages.csproj" />
+    <Project Path="src/ZeroNtsIo.Naive/ZeroNtsIo.Naive.csproj" />
+    <Project Path="src/ZeroNtsIo.Reference/ZeroNtsIo.Reference.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ZeroNtsIo.Tests/ZeroNtsIo.Tests.csproj" />
+  </Folder>
+</Solution>

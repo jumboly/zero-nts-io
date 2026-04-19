@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>ZeroNtsIo</PackageId>
+    <RootNamespace>ZeroNtsIo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ZeroNtsIo.Stages" />
+    <InternalsVisibleTo Include="ZeroNtsIo.Tests" />
+    <InternalsVisibleTo Include="ZeroNtsIo.Benchmarks" />
+  </ItemGroup>
+
+</Project>

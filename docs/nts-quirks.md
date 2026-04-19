@@ -23,7 +23,7 @@ M / ZM でも同様に MultiPoint だけ外側は 4。
 
 **影響**: OGC ISO WKB と言いつつ MultiPoint だけ SFS 1.1 形式を混在させる挙動のため、互換実装を書くときは **MultiPoint だけ特別扱い** が必要。
 
-**対応箇所**: `src/ZeroWkX/ZWkbWriter.cs` の `suppressOrdOffset = g is MultiPoint`。
+**対応箇所**: `src/ZeroNtsIo/ZWkbWriter.cs` の `suppressOrdOffset = g is MultiPoint`。
 
 ---
 
@@ -86,7 +86,7 @@ var writer = new WKBWriter(byteOrder, handleSRID: false, emitZ: hasZ, emitM: has
 
 **注意**: Multi\*/GeometryCollection の自分自身 (`MultiPoint.HasZ` 等) は**あてにならない**。子ジオメトリの `CoordinateSequence.HasZ` を再帰的に見る必要がある。この判定を `g.NumGeometries > 1` で分岐すると、子が 1 個しか無い Multi\* で Z/M を落とすバグになる（`is MultiPoint or MultiLineString or ...` で型判定するのが正解）。
 
-**対応箇所**: `src/ZeroWkX.Reference/NtsWkbWriter.cs` の `AnySeq`。
+**対応箇所**: `src/ZeroNtsIo.Reference/NtsWkbWriter.cs` の `AnySeq`。
 
 ---
 
