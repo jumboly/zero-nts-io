@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # ビルド（Release が基本、net10.0）
 dotnet build -c Release
 
-# 全テスト（1146/1146 通過が期待値。退行は即バグ）
+# 全テスト（1254/1254 通過が期待値。退行は即バグ）
 dotnet test tests/ZeroNtsIo.Tests -c Release
 
 # 1 クラスだけ
@@ -86,7 +86,7 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroNtsIo.Stages/Internal/`（
 
 ## テスト
 
-`tests/ZeroNtsIo.Tests/` 配下、合計 **1,146 件**が NTS をオラクルに比較する。構成:
+`tests/ZeroNtsIo.Tests/` 配下、合計 **1,254 件**が NTS をオラクルに比較する。構成:
 
 | ファイル | 役割 |
 |---------|------|

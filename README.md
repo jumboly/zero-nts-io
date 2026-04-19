@@ -59,7 +59,7 @@ ZeroNtsIo.slnx
 │   ├─ ZeroNtsIo.Reference/      # NTS 公式 IO の薄いラッパー（比較ベースライン、NtsServicesFactory 提供）
 │   ├─ ZeroNtsIo.Naive/          # string.Split / BinaryReader による素朴実装（比較用）
 │   └─ ZeroNtsIo.Stages/         # V1..V3 段階実装（ベンチマークで各最適化手法の純効果を見せるためのみ）
-├─ tests/ZeroNtsIo.Tests/        # xUnit：NTS 出力とのビット単位比較、1146 件
+├─ tests/ZeroNtsIo.Tests/        # xUnit：NTS 出力とのビット単位比較、1254 件
 └─ bench/ZeroNtsIo.Benchmarks/   # BenchmarkDotNet
 ```
 
@@ -87,7 +87,7 @@ ZeroNtsIo.slnx
 # ビルド
 dotnet build -c Release
 
-# テスト（NTS とのビット単位一致を検証、全 1146 件）
+# テスト（NTS とのビット単位一致を検証、全 1254 件）
 dotnet test -c Release
 
 # ベンチマーク（全組み合わせ、`--job short` で約 2 時間）
