@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # ビルド（Release が基本、net10.0）
 dotnet build -c Release
 
-# 全テスト（1122/1122 通過が期待値。退行は即バグ）
+# 全テスト（1146/1146 通過が期待値。退行は即バグ）
 dotnet test tests/ZeroWkX.Tests -c Release
 
 # 1 クラスだけ
@@ -86,7 +86,7 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroWkX.Stages/Internal/`（na
 
 ## テスト
 
-`tests/ZeroWkX.Tests/` 配下、合計 **1,122 件**が NTS をオラクルに比較する。構成:
+`tests/ZeroWkX.Tests/` 配下、合計 **1,146 件**が NTS をオラクルに比較する。構成:
 
 | ファイル | 役割 |
 |---------|------|
@@ -97,6 +97,7 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroWkX.Stages/Internal/`（na
 | `MalformedInputTests` | WKT/WKB バリデーション。EWKB と truncate 入力は例外必須 |
 | `EdgeCaseTests` | EMPTY / ネスト GC / 負のゼロ / EWKB 拒否 |
 | `ZWriterTests` | NTS Reader で読み返すラウンドトリップ |
+| `RegressionDataTests` | 国土数値情報（CC BY 4.0 範囲）の Point/Line/Polygon 計 8 フィクスチャ × 全 Reader/Writer。実データ退行の検知。`bench/Data/*.wkb` を `Fixtures/RealDataLoader.cs` で解決 |
 
 配列ループは `(string Name, Func<string, Geometry> Read, long Ulp)[]` / `(string Name, Func<byte[], Geometry> Read)[]` 形式のタプル（インターフェース抽象を廃止したため）。
 
@@ -110,16 +111,20 @@ V3 専用の `PooledCoordinateBuffer.cs` は `src/ZeroWkX.Stages/Internal/`（na
 
 `bench/ZeroWkX.Benchmarks/`、BenchmarkDotNet 使用。全 Reader ベンチは `[Benchmark(Baseline = true)] Nts()` を立てているので `Ratio` 列がそのまま「NTS 比」として読める。
 
-- `WktReadBenchmarks` / `WkbReadBenchmarks` — メインマトリクス（6/4 実装 × 5 種 × 3 サイズ × {LE, BE}）
+- `WktReadBenchmarks` / `WkbReadBenchmarks` — メインマトリクス（7/5 実装 × 7 種 × 5 サイズ × {LE, BE}）
 - `WktReadDimensionsBenchmarks` / `WkbReadDimensionsBenchmarks` — 次元ごとの勾配（XY / XYZ / XYM / XYZM）
 - `RealisticShapeBenchmarks` — seeded 合成「海岸線的」MultiPolygon（準共線点、複数穴）
-- `NaturalDataBenchmarks` — 実データ `bench/Data/N03_Kagawa.wkb` 使用（詳細は `bench/Data/README.md`）
+- `NaturalDataBenchmarks` — 実データ `bench/Data/A45_Kagawa_NationalForest.wkb` 使用（香川県 国有林野 300 features、MultiPolygon、CC BY 4.0）。詳細は `bench/Data/README.md`
 
 `FixtureSource.cs` は共有状態。ジオメトリ生成ロジックの変更は全ベンチクラスに波及する。フィクスチャは決定論的（`Random(42)` 固定）なので、ラン間で比率を比較できるよう決定論性を崩さないこと。
 
+ベンチの取捨選択・運用方針は `docs/bench-policy.md` にまとめている。全クラス・軸の位置付け、削減効果の試算、シナリオ別の実行パターン（日常 / 退行検知 / リリース）を参照。
+
 ## `bench/Data/` のライセンス
 
-`bench/Data/` 配下のファイルは MIT / BSD ではなく、**国土数値情報**（国土交通省）の利用規約に基づく。要件は**出典明示**（`「国土数値情報（行政区域データ）」（国土交通省）`）。他のコードは BSD-3-Clause。実データを追加する場合は `bench/Data/README.md` に出典を追記し、コードのライセンス表記と分けて管理すること。
+`bench/Data/` 配下のファイルは MIT / BSD ではなく、**国土数値情報**（国土交通省）由来で、すべて **CC BY 4.0**。出典明示のみ必要（表示条項）。`RegressionDataTests` と `NaturalDataBenchmarks` が使用する。
+
+他のコードは BSD-3-Clause。実データを追加する場合は `bench/Data/README.md` に出典を追記し、`license_raw` を `ksj/catalog/datasets.yaml` から確認してライセンス条件を明示する（採用は純粋な `オープンデータ（CC_BY_4.0）` のみ、`一部制限` / `注意事項` / `申請等必要` 付きのものは除外。旧 N03 は国土地理院申請の注記があるため撤去済み）。
 
 ## スコープ
 

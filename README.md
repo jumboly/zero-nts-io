@@ -8,6 +8,22 @@ NetTopologySuite (NTS) 互換の高速 WKT / WKB 読み書きライブラリ（.
 
 ---
 
+## ベンチマーク概要
+
+NTS 公式 Reader と本ライブラリ最終版 (`ZWktReader` / `ZWkbReader`) の比較。測定は Apple A18 Pro / .NET 10.0.5 Arm64 / BenchmarkDotNet v0.15.8 `--job short`、100,000 座標の LineString を入力としたもの。
+
+| 対象 | NTS 公式 | ZeroWkX | 倍速 |
+|------|----------|---------|------|
+| WKT Read | 48.2 ms | **13.4 ms** | **約 3.6×** |
+| WKB Read (LE) | 659 µs | **89.6 µs** | **約 7.4×** |
+| WKB Read (BE) | 728 µs | **118 µs** | **約 6.2×** |
+
+アロケーションも WKT で 37.4 MB → 1.5 MB（96% 減）と大きく削る。仕組みは単純で、WKB-LE は座標ブロックが既に `PackedCoordinateSequence` と同じ `double[]` レイアウトなので `Unsafe.CopyBlockUnaligned` で 1 回 memcpy するだけ、BE は `Vector128.Shuffle` で 16 バイトごとに SIMD バイトスワップ、WKT は Span 化 + カスタム double パーサ + `PackedCoordinateSequenceFactory.Create(double[], dim, measures)` への所有権渡しで `Coordinate` 構造体化自体を回避する。
+
+他ジオメトリ型 / サイズ / 段階実装（V1〜V3）の分解は下の「ベンチマーク結果」を参照。
+
+---
+
 ## 構成
 
 ```
@@ -17,7 +33,7 @@ ZeroWkX.slnx
 │   ├─ ZeroWkX.Reference/      # NTS 公式 IO の薄いラッパー（比較ベースライン、NtsServicesFactory 提供）
 │   ├─ ZeroWkX.Naive/          # string.Split / BinaryReader による素朴実装（比較用）
 │   └─ ZeroWkX.Stages/         # V1..V3 段階実装（ベンチマークで各最適化手法の純効果を見せるためのみ）
-├─ tests/ZeroWkX.Tests/        # xUnit：NTS 出力とのビット単位比較、1122 件
+├─ tests/ZeroWkX.Tests/        # xUnit：NTS 出力とのビット単位比較、1146 件
 └─ bench/ZeroWkX.Benchmarks/   # BenchmarkDotNet
 ```
 
@@ -45,7 +61,7 @@ ZeroWkX.slnx
 # ビルド
 dotnet build -c Release
 
-# テスト（NTS とのビット単位一致を検証、全 1122 件）
+# テスト（NTS とのビット単位一致を検証、全 1146 件）
 dotnet test -c Release
 
 # ベンチマーク（全組み合わせ、数十分）
@@ -89,44 +105,44 @@ string text = wktWriter.Write(g);
 
 ## ベンチマーク結果
 
-計測環境: macOS (Apple Silicon), .NET 10.0.201, BenchmarkDotNet `--job short`
+計測環境: macOS Tahoe 26.4.1 / Apple A18 Pro (6 cores) / .NET SDK 10.0.201 (.NET 10.0.5 Arm64 RyuJIT) / BenchmarkDotNet v0.15.8 `--job short` (3 iterations × 3 warmups)。NTS バージョンは 2.6。座標は seed 固定の決定論ジェネレータで生成し、ラン間で同じ入力を保証。
 
 ### WKT Read, 100,000 coords LineString
 
+`ReadOnlySpan<char>` ベースの段階実装と NTS 公式 `WKTReader` を比較。NTS は文字列を逐次分割し `Coordinate` を生成する古典的構造なので、座標数に対してアロケーションが線形に膨らむ。
+
 | 実装 | Mean (ms) | Ratio vs NTS | Allocated | Alloc Ratio | 段階の寄与 |
 |------|-----------|--------------|-----------|-------------|------------|
-| `Nts` (公式) | 48.5 | 1.00 | 39.2 MB | 1.00 | — |
-| `Naive` | 27.5 | 0.57 | 20.0 MB | 0.51 | — |
-| `V1_Span` | 18.8 | 0.39 | 7.7 MB | 0.20 | **Span 化：-8.7 ms、-12 MB** |
-| `V2_CustomParser` | 15.1 | 0.31 | 7.7 MB | 0.20 | **double パーサ：-3.7 ms** |
-| `V3_ArrayPool` | 15.6 | 0.32 | 5.6 MB | 0.14 | **pool：-2 MB**（時間は誤差） |
-| `Z` (最終版) | **13.1** | **0.27** | **1.6 MB** | **0.04** | **直接 packed：-2.5 ms、-4 MB** |
+| `Nts` (公式) | 48.2 | 1.00 | 37.4 MB | 1.00 | — |
+| `Naive` | 26.8 | 0.56 | 19.0 MB | 0.51 | — |
+| `V1_Span` | 18.7 | 0.39 | 7.3 MB | 0.20 | **Span 化：-8.1 ms、-11.7 MB** |
+| `V2_CustomParser` | 15.1 | 0.31 | 7.3 MB | 0.20 | **カスタム double パーサ：-3.6 ms** |
+| `V3_ArrayPool` | 15.4 | 0.32 | 5.3 MB | 0.14 | **ArrayPool：-2.0 MB**（時間は誤差） |
+| `Z` (最終版) | **13.4** | **0.28** | **1.5 MB** | **0.04** | **packed 直挿入 + unsafe：-2.0 ms、-3.8 MB** |
 
-→ **最終版は NTS 比 3.7 倍速、アロケ 96% 減**
+右端の「段階の寄与」は 1 段上との差分で、各最適化手法の純効果（各段階で 1 手法だけ積み足す設計のため）。
 
 ### WKB Read, 100,000 coords LineString (LE)
 
 | 実装 | Mean (µs) | Ratio vs NTS | Allocated |
 |------|-----------|--------------|-----------|
-| `Nts` (公式) | 620 | 1.00 | 1.60 MB |
-| `Naive` | 4,089 | 6.59 | 5.60 MB |
-| `V1_Span` | 3,365 | 5.43 | 5.60 MB |
-| `Z` (最終版) | **85** | **0.14** | **1.60 MB** |
+| `Nts` (公式) | 659 | 1.00 | 1.53 MB |
+| `Naive` | 4,090 | 6.21 | 5.34 MB |
+| `V1_Span` | 3,394 | 5.15 | 5.34 MB |
+| `Z` (最終版) | **89.6** | **0.14** | **1.53 MB** |
 
-→ **最終版は NTS 比 7 倍速**（LE では `Unsafe.CopyBlockUnaligned` による 1 回の memcpy で座標ブロック全体を packed 配列に流し込むため）
+WKB-LE では座標ブロックが既に `PackedCoordinateSequence` と同じ `double[]` メモリレイアウトなので、`Unsafe.CopyBlockUnaligned` で 1 回だけ memcpy してそのまま `PackedCoordinateSequenceFactory.Create(double[], dim, measures)` に所有権を渡す。NTS / Naive / V1 は 1 座標ごとに `ReadDouble` を呼ぶ素朴ループで、座標数に比例して伸びる。
 
 ### WKB Read, 100,000 coords LineString (BE)
 
 | 実装 | Mean (µs) | Ratio vs NTS |
 |------|-----------|--------------|
-| `Nts` (公式) | 747 | 1.00 |
-| `Z` (最終版) | **116** | **0.16** |
+| `Nts` (公式) | 728 | 1.00 |
+| `Z` (最終版) | **118** | **0.16** |
 
-→ **最終版は NTS 比 6 倍速**（`Vector128.Shuffle` による SIMD バイトスワップが効く）
+BE 側はバイト順反転が必要だが、`Vector128.Shuffle`（x86 `pshufb` / ARM `tbl` に JIT がそれぞれマップ）で 16 バイトごとに SIMD バイトスワップを走らせる。Apple Silicon でも走る経路を選ぶ必要があり、`Avx2.Shuffle` 固定だと Mac でこの経路が無効化される。
 
----
-
-## 各最適化手法が何をしているか
+### 各最適化手法が何をしているか
 
 `ZeroWkX` の最終実装は下記 4 段の最適化を重ねたもの。段階差分ベンチ (`ZeroWkX.Stages` プロジェクト + `ZeroWkX` の比較) で各寄与を個別計測できます。
 
@@ -137,13 +153,15 @@ string text = wktWriter.Write(g);
 | **V3: ArrayPool** | `List<Coordinate>` による倍倍成長を `ArrayPool<Coordinate>` / `ArrayPool<LinearRing>` のリースに置換 | 主にメモリ（時間効果は限定的） |
 | **Z (= V4): unsafe + SIMD + packed 直挿入** | WKB-LE は `Unsafe.CopyBlockUnaligned` で 1 回の memcpy、BE は `Vector128.Shuffle` で 16 バイトごとに SIMD バイトスワップ。`double[]` を `PackedCoordinateSequenceFactory.Create(double[], dim, measures)` に所有権渡しして `Coordinate` 構造体化を完全に回避 | WKB 大勝ち、WKT は主にアロケ削減 |
 
-### 差分が各手法の純効果
+#### 差分が各手法の純効果
 
 同じ `[Params]` のベンチで隣同士を引き算すると、各最適化の寄与が個別に出ます。
 - `V1 − Naive` = Span 化の効果
 - `V2 − V1` = カスタム double パーサの効果
-- `V3 − V2` = ArrayPool の効果（時間はほぼ ゼロ、メモリ 22% 減）
+- `V3 − V2` = ArrayPool の効果（時間はほぼゼロ、メモリ 約 27% 減）
 - `Z − V3` = unsafe / SIMD / packed 直挿入の効果
+
+完全な `--job short` レポートは `BenchmarkDotNet.Artifacts/results/` 配下の `ZeroWkX.Benchmarks.WktReadBenchmarks-report-github.md` / `ZeroWkX.Benchmarks.WkbReadBenchmarks-report-github.md` に残っています（Polygon / PolygonWithHoles / MultiPolygon / GeometryCollection × 10 / 1,000 / 100,000 coords × LE / BE）。
 
 ---
 
@@ -164,7 +182,7 @@ NTS 公式出力との**ビット単位の座標一致**を `BitConverter.Double
 
 **BSD 3-Clause License**（依存先の NetTopologySuite 本家に合わせた）。詳細は [`LICENSE`](LICENSE)。
 
-`bench/Data/` 配下の実地理データのみ、国土数値情報利用規約に基づく別ライセンスで配布されている（出典明示必須）。詳細は [`bench/Data/README.md`](bench/Data/README.md)。
+`bench/Data/` 配下の実地理データは国土数値情報（国土交通省）由来で、すべて **CC BY 4.0** のもとで配布されている（出典明示必須）。詳細は [`bench/Data/README.md`](bench/Data/README.md)。
 
 ## 関連ドキュメント
 

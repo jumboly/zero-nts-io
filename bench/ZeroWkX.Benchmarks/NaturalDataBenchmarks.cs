@@ -8,14 +8,14 @@ using NetTopologySuite.Geometries;
 namespace ZeroWkX.Benchmarks;
 
 /// <summary>
-/// 実データベンチ: 国土数値情報 行政区域データ N03-20240101 香川県本島ポリゴン（22,418 座標）。
+/// 実データベンチ: 国土数値情報 国有林野 A45-19 香川県（CC BY 4.0、先頭 300 features の MultiPolygon）。
 /// 詳細は bench/Data/README.md 参照。
 /// </summary>
 [MemoryDiagnoser]
 public class NaturalDataBenchmarks
 {
-    private static readonly string WkbPath = LocateData("N03_Kagawa.wkb");
-    private static readonly string WktPath = LocateData("N03_Kagawa.wkt.txt");
+    private static readonly string WkbPath = LocateData("A45_Kagawa_NationalForest.wkb");
+    private static readonly string WktPath = LocateData("A45_Kagawa_NationalForest.wkt.txt");
 
     [Params(ByteOrder.LittleEndian, ByteOrder.BigEndian)] public ByteOrder Order;
 
