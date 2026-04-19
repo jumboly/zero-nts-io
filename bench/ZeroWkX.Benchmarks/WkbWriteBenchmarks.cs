@@ -9,8 +9,8 @@ namespace ZeroWkX.Benchmarks;
 [MemoryDiagnoser]
 public class WkbWriteBenchmarks
 {
-    [Params(10, 1_000, 100_000)] public int Coords;
-    [Params("LineString", "Polygon", "PolygonWithHoles", "MultiPolygon", "GeometryCollection")] public string Kind = "";
+    [Params(1, 10, 100, 1_000, 10_000)] public int Coords;
+    [Params("Point", "MultiPoint", "LineString", "Polygon", "PolygonWithHoles", "MultiPolygon", "GeometryCollection")] public string Kind = "";
     [Params(ByteOrder.LittleEndian, ByteOrder.BigEndian)] public ByteOrder Order;
 
     private Geometry _geom = null!;

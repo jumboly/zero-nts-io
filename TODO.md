@@ -20,6 +20,11 @@
 
 ## ベンチマーク拡張（低優先）
 
+- [ ] `WktReadBenchmarks` / `WkbReadBenchmarks` の `Nts_Default` バリアント再計測 + README 反映
+  - コードは適用済み（`new WKTReader()` / `new WKBReader()` 相当、既定 `CoordinateArraySequenceFactory` 使用）
+  - WkbRead は再計測済み（100k LineString LE で NTS 既定 2,752 µs / Packed 638 µs / ZeroWkX 90 µs、既定は Packed の 4 倍遅い）
+  - WktRead は未計測（並列汚染で中断）。`dotnet run -c Release --project bench/ZeroWkX.Benchmarks -- --filter '*WktReadBenchmarks*' --job short` を他ベンチと並列にせず単独で流す
+  - 揃ったら README の「ベンチマーク概要」「ベンチマーク結果」両セクションに Nts_Default 行を追加
 - [ ] `WktWriteDimensionsBenchmarks` / `WkbWriteDimensionsBenchmarks` — Writer 側でも XY/XYZ/XYM/XYZM で計測
 - [ ] 病的ケースベンチ
   - 1M 座標の LineString（キャッシュ外 / DRAM 律速領域）

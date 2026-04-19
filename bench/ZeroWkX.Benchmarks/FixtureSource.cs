@@ -18,7 +18,9 @@ public static class FixtureSource
         var factory = Services.CreateGeometryFactory();
         return kind switch
         {
-            "LineString" => factory.CreateLineString(GenerateCoords(rand, coords, ord)),
+            "Point" => factory.CreatePoint(MakeCoord(rand, ord)),
+            "MultiPoint" => factory.CreateMultiPointFromCoords(GenerateCoords(rand, coords, ord)),
+            "LineString" => factory.CreateLineString(GenerateCoords(rand, Math.Max(2, coords), ord)),
             "Polygon" => factory.CreatePolygon(factory.CreateLinearRing(GenerateRing(rand, coords, ord))),
             "PolygonWithHoles" => BuildPolygonWithHoles(rand, factory, coords, ord),
             "MultiPolygon" => factory.CreateMultiPolygon(GeneratePolygons(rand, factory, coords, ord)),

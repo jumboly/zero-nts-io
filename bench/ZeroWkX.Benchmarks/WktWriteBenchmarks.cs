@@ -9,8 +9,8 @@ namespace ZeroWkX.Benchmarks;
 [MemoryDiagnoser]
 public class WktWriteBenchmarks
 {
-    [Params(10, 1_000, 100_000)] public int Coords;
-    [Params("LineString", "Polygon", "PolygonWithHoles", "MultiPolygon", "GeometryCollection")] public string Kind = "";
+    [Params(1, 10, 100, 1_000, 10_000)] public int Coords;
+    [Params("Point", "MultiPoint", "LineString", "Polygon", "PolygonWithHoles", "MultiPolygon", "GeometryCollection")] public string Kind = "";
 
     private Geometry _geom = null!;
     private NtsWktWriter _nts = null!;
