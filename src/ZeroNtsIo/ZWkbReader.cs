@@ -7,12 +7,12 @@ using NetTopologySuite.Geometries;
 namespace ZeroNtsIo;
 
 /// <summary>
-/// Fast WKB reader: unsafe / SIMD coordinate block copy. LE blocks are reinterpreted via
-/// <see cref="CoordinateBlockReader.ReadLittleEndian"/> (one <c>memcpy</c>); BE blocks are
-/// byte-swapped via a <c>Vector128.Shuffle</c> loop. Coordinates are handed to
-/// <see cref="NetTopologySuite.Geometries.Implementation.PackedCoordinateSequenceFactory"/>
-/// with ownership transfer, so the WKB payload is never materialized as
-/// <see cref="Coordinate"/> objects.
+/// 高速 WKB Reader。unsafe / SIMD による座標ブロックコピーを行う。
+/// LE ブロックは <see cref="CoordinateBlockReader.ReadLittleEndian"/> で再解釈（<c>memcpy</c> 1 回）し、
+/// BE ブロックは <c>Vector128.Shuffle</c> ループでバイトスワップする。
+/// 座標は所有権を渡す形で
+/// <see cref="NetTopologySuite.Geometries.Implementation.PackedCoordinateSequenceFactory"/> に受け渡すため、
+/// WKB ペイロードは <see cref="Coordinate"/> オブジェクトとして一切マテリアライズされない。
 /// </summary>
 public sealed class ZWkbReader
 {
@@ -32,8 +32,8 @@ public sealed class ZWkbReader
         int pos = 0;
         int capturedSrid = 0;
         var g = ReadGeometry(wkb, ref pos, ref capturedSrid);
-        // Why: PostGIS EWKB carries SRID on the root type only. Propagate to the returned geometry;
-        // NTS's SRID setter recurses into children for collection types.
+        // Why: PostGIS EWKB では SRID はルートのタイプコードにのみ付く。戻り値のジオメトリへ反映する。
+        // NTS の SRID setter は collection 系では子へ再帰的に伝播する。
         if (capturedSrid != 0) g.SRID = capturedSrid;
         return g;
     }
@@ -47,16 +47,16 @@ public sealed class ZWkbReader
         uint rawType = ReadUInt32(buf, ref pos, le);
         uint ogc = rawType;
         bool hiZ = false, hiM = false;
-        // Why: EWKB encodes SRID / Z / M via high-bit flags, orthogonal to the OGC 1000/2000/3000
-        // offsets. Keep the common OGC-ISO path branch-free by guarding all EWKB decoding under one
-        // mask check; children in OGC geometries never re-enter this block.
+        // Why: EWKB は SRID / Z / M を高位ビットフラグでエンコードし、OGC の 1000/2000/3000 オフセットとは直交する。
+        // 共通の OGC-ISO 経路を分岐なしに保つため、EWKB デコード全体を 1 つのマスク判定の内側に閉じ込める。
+        // OGC ジオメトリの子側はこのブロックに再入しない。
         if ((rawType & EwkbFlags.Any) != 0)
         {
             if ((rawType & EwkbFlags.Srid) != 0)
             {
                 int srid = (int)ReadUInt32(buf, ref pos, le);
-                // Why: only the outermost geometry's SRID is meaningful; PostGIS omits it on children
-                // but some producers repeat it. Capture the first one seen (the root).
+                // Why: 最外郭ジオメトリの SRID のみが意味を持つ。PostGIS は子では省略するが、
+                // 生成側によっては子にも付けるため、最初に現れた値（= ルートの値）を採用する。
                 if (capturedSrid == 0) capturedSrid = srid;
             }
             hiZ = (rawType & EwkbFlags.Z) != 0;
@@ -92,7 +92,7 @@ public sealed class ZWkbReader
         CopyCoords(buf.Slice(pos, dim * 8), packed, le);
         pos += dim * 8;
 
-        // Why: OGC POINT EMPTY is encoded as all-NaN ordinates.
+        // Why: OGC 仕様では POINT EMPTY は全 ordinates が NaN としてエンコードされる。
         if (double.IsNaN(packed[0]) && double.IsNaN(packed[1]))
             return _factory.CreatePoint((Coordinate?)null);
 

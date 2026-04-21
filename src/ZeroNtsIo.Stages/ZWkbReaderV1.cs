@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 
 namespace ZeroNtsIo.Stages;
 
-/// <summary>V1: Span-based WKB parsing, no BinaryReader/MemoryStream allocs.</summary>
+/// <summary>V1: span ベースの WKB 解析。BinaryReader / MemoryStream の確保を一切行わない。</summary>
 public sealed class ZWkbReaderV1
 {
     private readonly GeometryFactory _factory;

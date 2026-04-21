@@ -6,7 +6,7 @@ using NetTopologySuite.Geometries;
 
 namespace ZeroNtsIo.Stages;
 
-/// <summary>V3: V2 + <see cref="ArrayPool{T}"/> for coordinate-list growth and per-geometry arrays.</summary>
+/// <summary>V3: V2 + 座標リストの伸長やジオメトリ単位の配列に <see cref="ArrayPool{T}"/> を使用。</summary>
 public sealed class ZWktReaderV3
 {
     private readonly GeometryFactory _factory;

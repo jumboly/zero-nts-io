@@ -6,10 +6,10 @@ using NetTopologySuite.Geometries;
 namespace ZeroNtsIo;
 
 /// <summary>
-/// Fast WKT reader: writes parsed ordinates directly into a packed <c>double[]</c>
-/// (no <see cref="Coordinate"/> struct intermediate) and hands the array to NTS via
-/// <see cref="NetTopologySuite.Geometries.Implementation.PackedCoordinateSequenceFactory"/>.
-/// Combines the span-based tokenizer, custom double parser, and array-pool scratch buffers.
+/// 高速 WKT Reader。パース済み ordinate を packed な <c>double[]</c> へ直接書き込み
+/// （<see cref="Coordinate"/> 構造体を経由しない）、
+/// <see cref="NetTopologySuite.Geometries.Implementation.PackedCoordinateSequenceFactory"/> 経由で NTS に渡す。
+/// span ベースのトークナイザ、カスタム double パーサ、ArrayPool スクラッチバッファを組み合わせている。
 /// </summary>
 public sealed class ZWktReader
 {
@@ -236,7 +236,7 @@ public sealed class ZWktReader
             case Ordinates.XYZ:
                 buf.AppendXYZ(x, y, FastDoubleParser.Parse(c.ReadNumberToken())); break;
             case Ordinates.XYM:
-                // Why: packed XYM uses 3 slots where the third ordinate is M, not Z.
+                // Why: packed XYM は 3 スロット構成で、3 番目の ordinate は Z ではなく M。
                 buf.AppendXYZ(x, y, FastDoubleParser.Parse(c.ReadNumberToken())); break;
             case Ordinates.XYZM:
                 buf.AppendXYZM(x, y, FastDoubleParser.Parse(c.ReadNumberToken()), FastDoubleParser.Parse(c.ReadNumberToken())); break;

@@ -60,7 +60,7 @@ public sealed class NaiveWkbWriter
     {
         if (p.IsEmpty)
         {
-            // Why: OGC represents POINT EMPTY as all-NaN coordinates.
+            // Why: OGC 仕様では POINT EMPTY は全 ordinates が NaN として表現される。
             for (int i = 0; i < dim; i++) WriteDouble(bw, double.NaN, le);
             return;
         }

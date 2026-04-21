@@ -15,8 +15,8 @@ public class WkbReadDimensionsBenchmarks
 {
     [Params(Ordinates.XY, Ordinates.XYZ, Ordinates.XYM, Ordinates.XYZM)] public Ordinates Ord;
     [Params(10_000)] public int Coords;
-    // Why: include BE so the SIMD byte-swap path's per-dimension efficiency is numerically
-    // visible — XYZM emits in 32-byte blocks which is the sweet spot for Vector128.Shuffle.
+    // Why: BE も含めて、SIMD バイトスワップ経路の次元毎の効率を数値として可視化する。
+    // XYZM は 32 バイト単位での出力となり、これが Vector128.Shuffle の最も効率が良いサイズ。
     [Params(ByteOrder.LittleEndian, ByteOrder.BigEndian)] public ByteOrder Order;
 
     private byte[] _wkb = null!;

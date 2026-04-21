@@ -5,9 +5,9 @@ namespace ZeroNtsIo.Reference;
 
 public static class NtsServicesFactory
 {
-    // Why: the default CoordinateArraySequenceFactory drops Z/M silently on round-trip
-    // unless constructed with explicit dimension. PackedCoordinateSequenceFactory honors
-    // the per-sequence dimension/measures hints that WKB/WKT readers pass in.
+    // Why: 既定の CoordinateArraySequenceFactory は明示的な dimension を指定しないと
+    // ラウンドトリップ時に Z/M を黙って落とす。PackedCoordinateSequenceFactory なら
+    // WKB/WKT Reader が渡すシーケンス毎の dimension / measures ヒントを尊重してくれる。
     public static NtsGeometryServices CreatePacked() =>
         new NtsGeometryServices(PackedCoordinateSequenceFactory.DoubleFactory);
 }

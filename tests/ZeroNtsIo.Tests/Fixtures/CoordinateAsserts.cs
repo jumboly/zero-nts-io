@@ -5,8 +5,8 @@ namespace ZeroNtsIo.Tests.Fixtures;
 
 public static class CoordinateAsserts
 {
-    // Why: floating-point text roundtrips can differ by 1 ULP depending on parser.
-    // We compare bit-for-bit when ulpTolerance == 0, otherwise allow a small gap.
+    // Why: 浮動小数点のテキストラウンドトリップは、パーサによって結果が 1 ULP ずれ得る。
+    // ulpTolerance == 0 の場合はビット単位で完全一致を要求し、それ以外は小さな差を許容する。
     public static void AssertCoordinatesBitEqual(Geometry expected, Geometry actual, long ulpTolerance = 0)
     {
         Assert.Equal(expected.GeometryType, actual.GeometryType);
@@ -21,7 +21,7 @@ public static class CoordinateAsserts
             long eb = BitConverter.DoubleToInt64Bits(e[i]);
             long ab = BitConverter.DoubleToInt64Bits(a[i]);
             long diff = Math.Abs(eb - ab);
-            // Both-NaN should compare equal for our purposes.
+            // この比較では、両辺が NaN であれば等しいものとして扱う。
             if (double.IsNaN(e[i]) && double.IsNaN(a[i])) continue;
             Assert.True(diff <= ulpTolerance,
                 $"[{i}] expected={e[i]:R} (bits {eb:X}) actual={a[i]:R} (bits {ab:X}) ulp diff={diff}");

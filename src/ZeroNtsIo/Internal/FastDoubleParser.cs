@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 namespace ZeroNtsIo.Internal;
 
 /// <summary>
-/// Lightweight ASCII double parser covering the grammar <c>[+-]?\d+(\.\d+)?([eE][+-]?\d+)?</c>.
-/// Falls back to <see cref="double.TryParse(ReadOnlySpan{char}, NumberStyles, IFormatProvider, out double)"/>
-/// for inputs outside the fast path (overflowing mantissa, very large exponents, special values).
+/// 文法 <c>[+-]?\d+(\.\d+)?([eE][+-]?\d+)?</c> をカバーする軽量 ASCII double パーサ。
+/// 高速経路の範囲外（mantissa オーバーフロー、極端に大きい指数、特殊値など）は
+/// <see cref="double.TryParse(ReadOnlySpan{char}, NumberStyles, IFormatProvider, out double)"/> にフォールバックする。
 /// </summary>
 internal static class FastDoubleParser
 {
-    // Why: 10^0..10^22 are represented exactly in IEEE-754 double. Beyond 22 rounding kicks in
-    // and the naive (mantissa * pow10[e]) path drifts, so we delegate to the BCL parser.
+    // Why: 10^0..10^22 は IEEE-754 double で厳密表現できる。22 を超えると丸めが発生し
+    // 素朴な (mantissa * pow10[e]) 経路は誤差が累積するため、BCL パーサに委譲する。
     private static readonly double[] Pow10 =
     [
         1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11,
@@ -89,8 +89,8 @@ internal static class FastDoubleParser
         if (i != len) return Fallback(s, out result);
 
         int exp = explicitExp - fracDigits;
-        // Why: the 53-bit mantissa can hold up to 2^53 ≈ 9.0e15; combined with a ±22 exact
-        // power of ten this keeps one rounding so the result is within 1 ULP of the BCL parser.
+        // Why: 53 ビット mantissa は 2^53 ≈ 9.0e15 まで保持できる。±22 の厳密な 10 冪と組み合わせれば
+        // 丸めは 1 回のみで済み、BCL パーサとの差は 1 ULP 以内に収まる。
         if (mantissa > (1UL << 53) || exp > 22 || exp < -22)
             return Fallback(s, out result);
 

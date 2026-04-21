@@ -112,7 +112,7 @@ public sealed class NaiveWktReader
         while (true)
         {
             c.SkipWhitespace();
-            // MULTIPOINT accepts both (1 2, 3 4) and ((1 2), (3 4))
+            // MULTIPOINT は (1 2, 3 4) と ((1 2), (3 4)) の両形式を受け付ける
             if (c.TryConsume('('))
             {
                 var coord = ReadCoordinate(ref c, ord);
@@ -217,8 +217,8 @@ public sealed class NaiveWktReader
         var s = c.Source;
         int i = start;
         if (i < s.Length && (s[i] == '+' || s[i] == '-')) i++;
-        // Why: NTS emits NaN and Infinity literals for NaN M coordinates and EMPTY POINTs.
-        // Capture letter-started tokens so double.Parse can parse them (InvariantCulture accepts both).
+        // Why: NTS は NaN の M 座標や EMPTY POINT を NaN / Infinity リテラルで出力する。
+        // double.Parse がそのまま解釈できるよう、英字で始まるトークンもそのまま取り込む（InvariantCulture は両方を受理する）。
         if (i < s.Length && char.IsLetter(s[i]))
         {
             while (i < s.Length && char.IsLetter(s[i])) i++;

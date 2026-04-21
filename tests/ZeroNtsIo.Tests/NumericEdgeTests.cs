@@ -9,8 +9,8 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Exercises numeric edge cases (NaN, ±∞, subnormals, extreme magnitudes, -0.0, integer vs
-/// fractional forms, scientific notation) against the NTS oracle for every reader.
+/// 数値のエッジケース（NaN / ±∞ / subnormal / 極端な大小 / -0.0 / 整数 vs 小数表記 / 科学表記）を
+/// 全 Reader について NTS オラクルと比較する。
 /// </summary>
 public class NumericEdgeTests
 {
@@ -18,8 +18,8 @@ public class NumericEdgeTests
     private static readonly NtsWkbReader NtsWkb = new(Samples.Services);
     private static readonly NtsWkbWriter NtsWkbW = new();
 
-    // Why: the custom double parser (FastDoubleParser) can round differently from BCL by up to
-    // 1 ULP on the fast path. V1 and Naive use BCL directly and are 0 ULP.
+    // Why: カスタム double パーサ (FastDoubleParser) は高速経路で BCL と最大 1 ULP まで丸めが異なり得る。
+    // V1 と Naive は BCL をそのまま使うため 0 ULP。
     private static readonly (string Name, Func<string, Geometry> Read, long Ulp)[] WktReaders =
     [
         ("Naive", new NaiveWktReader(Samples.Services).Read, 0),
@@ -31,8 +31,8 @@ public class NumericEdgeTests
 
     public static IEnumerable<object[]> ExtremeDoubleWkts()
     {
-        // Why: picks one representative WKT per tricky double value — zero variants, extreme
-        // magnitudes, subnormals, specials, explicit positive signs, and integer/scientific forms.
+        // Why: 扱いに注意が必要な double 値（0 の各種形式・極端な大小・subnormal・特殊値・明示的な正符号・
+        // 整数/科学表記）それぞれについて代表的な WKT を 1 本ずつ選んでいる。
         yield return new object[] { "POINT (0 0)" };
         yield return new object[] { "POINT (-0 -0)" };
         yield return new object[] { "POINT (1 2)" };
@@ -40,8 +40,8 @@ public class NumericEdgeTests
         yield return new object[] { "POINT (1.0 2.0)" };
         yield return new object[] { "POINT (1e10 2e-10)" };
         yield return new object[] { "POINT (1.5E+3 -2.5E-3)" };
-        yield return new object[] { "POINT (1.7976931348623157E+308 -1.7976931348623157E+308)" }; // near double max
-        yield return new object[] { "POINT (5E-324 -5E-324)" }; // smallest subnormal
+        yield return new object[] { "POINT (1.7976931348623157E+308 -1.7976931348623157E+308)" }; // double 最大値付近
+        yield return new object[] { "POINT (5E-324 -5E-324)" }; // 最小 subnormal
         yield return new object[] { "POINT (0.1 0.2)" };
         yield return new object[] { "POINT (123456789.987654321 987654321.123456789)" };
         yield return new object[] { "LINESTRING M (0 0 NaN, 1 1 NaN)" };
@@ -64,8 +64,8 @@ public class NumericEdgeTests
     [Fact]
     public void NegativeZero_bit_pattern_is_preserved_through_wkb()
     {
-        // Why: -0.0 and +0.0 compare equal under ==; only the bit pattern differentiates them.
-        // Round-tripping via WKB must preserve the sign bit for data correctness.
+        // Why: -0.0 と +0.0 は == では等しく、区別できるのはビットパターンのみ。
+        // データの正しさを保つため、WKB ラウンドトリップで符号ビットは保持されなければならない。
         const long negZeroBits = unchecked((long)0x8000000000000000);
 
         var g = NtsWkt.Read("POINT (-0.0 -0.0)");

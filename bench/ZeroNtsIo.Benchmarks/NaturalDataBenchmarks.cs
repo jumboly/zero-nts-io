@@ -32,8 +32,8 @@ public class NaturalDataBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        // Why: the committed LE file is the canonical form; rewrite it to BE once at setup when
-        // benchmarking the BE path. We measure parsing, not re-encoding.
+        // Why: コミット済み LE ファイルを正規形とする。BE 経路を計測するときだけ setup で一度 BE に再エンコードする。
+        // 計測対象は解析であって再エンコードではない。
         var baseWkb = File.ReadAllBytes(WkbPath);
         if (Order == ByteOrder.BigEndian)
         {
@@ -63,8 +63,8 @@ public class NaturalDataBenchmarks
 
     private static string LocateData(string fileName)
     {
-        // Why: BenchmarkDotNet copies the build into a generated nested folder (bench/.../ShortRun-N/bin/...),
-        // so the repo root can be 10+ levels up. Walk until we find the solution file, then anchor.
+        // Why: BenchmarkDotNet はビルドを自動生成した入れ子フォルダ (bench/.../ShortRun-N/bin/...) にコピーするため、
+        // リポジトリルートは 10 階層以上上にあり得る。ソリューションファイルが見つかるまで親をたどってから解決する。
         var dir = AppContext.BaseDirectory;
         for (int i = 0; i < 20 && !string.IsNullOrEmpty(dir); i++)
         {

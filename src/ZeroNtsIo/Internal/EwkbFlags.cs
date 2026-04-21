@@ -1,8 +1,8 @@
 namespace ZeroNtsIo.Internal;
 
 /// <summary>
-/// PostGIS EWKB type-code high-bit flags, orthogonal to the OGC ISO 1000/2000/3000 offsets.
-/// Reader accepts all three; Writer only emits <see cref="Srid"/>.
+/// PostGIS EWKB タイプコードの高位ビットフラグ。OGC ISO の 1000/2000/3000 オフセットとは直交する。
+/// Reader は 3 種すべて受理するが、Writer は <see cref="Srid"/> のみ出力する。
 /// </summary>
 internal static class EwkbFlags
 {

@@ -4,9 +4,8 @@ using NetTopologySuite.Geometries.Implementation;
 namespace ZeroNtsIo.Internal;
 
 /// <summary>
-/// Helpers for handing a freshly allocated <c>double[]</c> to NTS via
-/// <see cref="PackedCoordinateSequenceFactory.Create(double[], int, int)"/>, which takes ownership
-/// without copying when <c>PackedType.Double</c> is configured.
+/// 新規確保した <c>double[]</c> を <see cref="PackedCoordinateSequenceFactory.Create(double[], int, int)"/>
+/// 経由で NTS に渡すためのヘルパー。<c>PackedType.Double</c> 設定時はコピーなしで所有権が受け渡される。
 /// </summary>
 internal static class PackedSequenceBuilder
 {
@@ -30,9 +29,9 @@ internal static class PackedSequenceBuilder
     {
         if (factory is PackedCoordinateSequenceFactory pf && pf.Type == PackedCoordinateSequenceFactory.PackedType.Double)
         {
-            // Why: PackedCoordinateSequenceFactory.Create(double[], dim, measures) takes ownership
-            // of the array without copying. This is the zero-copy sink for WKB-LE bytes and for
-            // our directly-populated WKT coord buffer.
+            // Why: PackedCoordinateSequenceFactory.Create(double[], dim, measures) は配列の所有権を
+            // コピーなしで受け取る。WKB-LE バイトと、WKT 用に直接埋めた座標バッファを、
+            // ここをゼロコピーで流し込む受け口として使う。
             return pf.Create(packed, dimension, measures);
         }
         throw new InvalidOperationException(

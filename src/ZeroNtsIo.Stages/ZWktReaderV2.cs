@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 
 namespace ZeroNtsIo.Stages;
 
-/// <summary>V2: V1 + custom <see cref="FastDoubleParser"/> (skips locale handling and exception paths).</summary>
+/// <summary>V2: V1 + カスタム <see cref="FastDoubleParser"/>（ロケール処理と例外経路をバイパスする）。</summary>
 public sealed class ZWktReaderV2
 {
     private readonly GeometryFactory _factory;

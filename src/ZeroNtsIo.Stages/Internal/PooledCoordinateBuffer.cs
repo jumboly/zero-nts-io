@@ -4,9 +4,9 @@ using NetTopologySuite.Geometries;
 namespace ZeroNtsIo.Stages.Internal;
 
 /// <summary>
-/// Growable <see cref="Coordinate"/> buffer backed by <see cref="ArrayPool{T}"/>.
-/// The final <see cref="Finish"/> call returns a right-sized array and releases the pool buffer,
-/// so the caller owns only one allocation for the lifetime of the returned coordinates.
+/// <see cref="ArrayPool{T}"/> を利用した可変長 <see cref="Coordinate"/> バッファ。
+/// 最後の <see cref="Finish"/> 呼び出しで要素数ぴったりの配列を返しつつ pool バッファを解放するため、
+/// 呼び出し側は返却された座標配列のライフタイム中、1 つの確保しか保持しない。
 /// </summary>
 internal struct PooledCoordinateBuffer : IDisposable
 {
@@ -35,7 +35,7 @@ internal struct PooledCoordinateBuffer : IDisposable
         _buf = next;
     }
 
-    /// <summary>Copy into a right-sized array and return the pool buffer. The returned array is the only live alloc.</summary>
+    /// <summary>要素数ぴったりの配列にコピーしつつ pool バッファを返却する。戻り値の配列が唯一の live な確保となる。</summary>
     public Coordinate[] Finish()
     {
         var result = new Coordinate[_count];

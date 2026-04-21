@@ -20,9 +20,8 @@ public class ZV2Tests
     {
         var expected = _nts.Read(wkt);
         var actual = _v2.Read(wkt);
-        // Why: the custom double parser routes simple decimals through mantissa*pow10[exp];
-        // for values that fit the fast path this is exact, but rounding can differ by 1 ULP
-        // versus the BCL parser at the edges.
+        // Why: カスタム double パーサは単純な小数を mantissa*pow10[exp] 経路で処理する。
+        // 高速経路に収まる値は厳密だが、境界値では BCL パーサとの丸め差が最大 1 ULP 生じうる。
         CoordinateAsserts.AssertCoordinatesBitEqual(expected, actual, ulpTolerance: 1);
     }
 }

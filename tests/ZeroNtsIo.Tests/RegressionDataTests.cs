@@ -8,9 +8,9 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Regression fixtures sourced from 国土数値情報 (KSJ, 国土交通省, CC BY 4.0).
-/// Covers Point / Line / Polygon with multiple real-world datasets each.
-/// See bench/Data/README.md for attribution and derivation.
+/// 国土数値情報（KSJ、国土交通省、CC BY 4.0）由来の退行検知フィクスチャ。
+/// Point / Line / Polygon それぞれに複数の実データを用意している。
+/// 出典と派生元は bench/Data/README.md を参照。
 /// </summary>
 public class RegressionDataTests
 {

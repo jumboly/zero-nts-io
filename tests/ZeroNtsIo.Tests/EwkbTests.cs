@@ -16,8 +16,8 @@ public class EwkbTests
 
     public static IEnumerable<object[]> SridSamples()
     {
-        // Why: NTS WKBWriter with handleSRID emits 1000-offset + 0x20000000 SRID flag (canonical EWKB).
-        // These round through NTS → bytes → ZWkbReader and must match original coords + SRID.
+        // Why: NTS の WKBWriter は handleSRID 付きで 1000 オフセット + 0x20000000 SRID フラグを出力する（正統な EWKB）。
+        // NTS → バイト列 → ZWkbReader というラウンドトリップで、元の座標と SRID に一致する必要がある。
         yield return new object[] { "POINT (1 2)", 4326 };
         yield return new object[] { "POINT Z (1 2 3)", 4326 };
         yield return new object[] { "POINT M (1 2 3)", 3857 };
@@ -60,9 +60,9 @@ public class EwkbTests
 
     public static IEnumerable<object?[]> LegacyHighBitSamples()
     {
-        // Why: PostGIS 1.x encodes Z/M via type high bits instead of the OGC 1000 offset. NTS WKBWriter
-        // never emits this form, so the bytes are hand-crafted; NTS WKBReader accepts them and is used
-        // as oracle to confirm ZWkbReader produces the same geometry.
+        // Why: PostGIS 1.x は OGC の 1000 オフセットではなく、タイプコードの高位ビットで Z/M をエンコードする。
+        // NTS WKBWriter はこの形式を出力しないため、バイト列は手動で組み立てる。NTS WKBReader が受理するので、
+        // それをオラクルとして ZWkbReader が同じジオメトリを返すことを確認する。
         yield return new object?[] { EwkbFlags.Z,           new[] { 1.0, 2.0, 3.0 },       (int?)null,  true,  false };
         yield return new object?[] { EwkbFlags.M,           new[] { 1.0, 2.0, 99.0 },      (int?)null,  false, true  };
         yield return new object?[] { EwkbFlags.Z | EwkbFlags.M, new[] { 1.0, 2.0, 3.0, 99.0 }, (int?)null, true,  true };
@@ -87,8 +87,8 @@ public class EwkbTests
     [Fact]
     public void ZWkbWriter_handleSRID_emits_readable_ewkb()
     {
-        // Why: close the round trip on the write side — ZWkbWriter with handleSRID must produce bytes
-        // that NTS's WKBReader accepts and decodes with the same SRID + coords.
+        // Why: 書き込み側のラウンドトリップを閉じる。ZWkbWriter を handleSRID 付きで呼んだ出力は、
+        // NTS の WKBReader が受理し、同じ SRID と座標にデコードできなければならない。
         var g = _wkt.Read("POINT Z (1 2 3)");
         g.SRID = 4326;
         byte[] ewkb = _zWriter.Write(g, ByteOrder.LittleEndian, handleSRID: true);
@@ -105,12 +105,12 @@ public class EwkbTests
     [Fact]
     public void ZWkbWriter_without_handleSRID_stays_ogc_iso()
     {
-        // Why: default path must remain OGC ISO (no SRID bit, no 4-byte SRID field) — guard against
-        // accidentally exporting EWKB for consumers that only understand OGC.
+        // Why: 既定経路は OGC ISO のままでなければならない（SRID ビットも 4 バイトの SRID フィールドも無し）。
+        // OGC しか解釈できない消費者に、意図せず EWKB を出してしまうことを防ぐ。
         var g = _wkt.Read("POINT (1 2)");
         g.SRID = 4326;
-        byte[] ogc = _zWriter.Write(g, ByteOrder.LittleEndian); // handleSRID default false
-        Assert.Equal(21, ogc.Length); // 1 bo + 4 type + 16 xy
+        byte[] ogc = _zWriter.Write(g, ByteOrder.LittleEndian); // handleSRID は既定 false
+        Assert.Equal(21, ogc.Length); // byte order(1) + type(4) + xy(16)
         uint type = BinaryPrimitives.ReadUInt32LittleEndian(ogc.AsSpan(1, 4));
         Assert.Equal(0u, type & EwkbFlags.Any);
     }
@@ -118,13 +118,13 @@ public class EwkbTests
     [Fact]
     public void ZWkbWriter_handleSRID_is_noop_when_srid_unset()
     {
-        // Why: handleSRID=true with no meaningful SRID must not set the flag — NTS defaults to
-        // SRID=-1 for factory-built geometries, so the gate is `srid > 0`. An SRID-flag without a
-        // real SRID would confuse downstream EWKB readers.
+        // Why: handleSRID=true でも有効な SRID が無い場合はフラグを立ててはならない。
+        // NTS は factory 生成ジオメトリの SRID を -1 とするため、ゲートは `srid > 0` とする。
+        // 実 SRID が無いのに SRID フラグだけ立てると、下流の EWKB Reader を混乱させる。
         var g = _wkt.Read("POINT (1 2)");
         g.SRID = 0;
         byte[] bytes = _zWriter.Write(g, ByteOrder.LittleEndian, handleSRID: true);
-        Assert.Equal(21, bytes.Length); // 1 bo + 4 type + 16 xy, no SRID field
+        Assert.Equal(21, bytes.Length); // byte order(1) + type(4) + xy(16)、SRID フィールドは無い
         uint type = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(1, 4));
         Assert.Equal(0u, type & EwkbFlags.Srid);
     }
@@ -132,22 +132,22 @@ public class EwkbTests
     [Fact]
     public void ZWkbWriter_handleSRID_multipolygon_root_only()
     {
-        // Why: root carries the SRID flag; nested children must NOT repeat it (that's the PostGIS
-        // convention NTS follows). Verify by scanning the byte stream for 0x20000000 patterns.
+        // Why: SRID フラグはルートにのみ付ける。子では繰り返さない（NTS が追随する PostGIS の慣習）。
+        // バイト列を走査して 0x20000000 のパターンを確認する。
         var g = _wkt.Read("MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)), ((5 5, 6 5, 6 6, 5 5)))");
         g.SRID = 4326;
         byte[] bytes = _zWriter.Write(g, ByteOrder.LittleEndian, handleSRID: true);
 
-        // Root type (bytes 1..5): MultiPolygon (6) with SRID flag set.
+        // ルートタイプ（バイト 1..5）は MultiPolygon (6) + SRID フラグ。
         uint rootType = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(1, 4));
         Assert.Equal(EwkbFlags.Srid | 6u, rootType);
 
-        // Layout: bo(1) + type(4) + SRID(4) + numGeoms(4) = 13; child bo at offset 13, child type at 14.
-        // Child type must be 3 (Polygon) with NO SRID flag.
+        // レイアウト: bo(1) + type(4) + SRID(4) + numGeoms(4) = 13 バイト。子の byte order はオフセット 13、type は 14。
+        // 子のタイプは 3 (Polygon) で、SRID フラグは立っていてはならない。
         uint childType = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(14, 4));
         Assert.Equal(3u, childType);
 
-        // NTS reads it back with correct SRID and coords.
+        // NTS が正しい SRID と座標で読み戻せることを確認する。
         var round = _ntsReader.Read(bytes);
         Assert.Equal(4326, round.SRID);
         CoordinateAsserts.AssertCoordinatesBitEqual(g, round, ulpTolerance: 0);
@@ -156,8 +156,8 @@ public class EwkbTests
     [Fact]
     public void ZWkbReader_srid_propagates_into_multipolygon_children()
     {
-        // Why: NTS's Geometry.SRID setter propagates SRID to children. Verify that after ZWkbReader
-        // sets the root SRID, child polygons also expose it.
+        // Why: NTS の Geometry.SRID setter は子にも SRID を伝播させる。
+        // ZWkbReader がルートに SRID をセットした後、子の Polygon にも同じ SRID が反映されることを確認する。
         var g = _wkt.Read("MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)), ((5 5, 6 5, 6 6, 5 5)))");
         g.SRID = 3857;
         byte[] ewkb = new WKBWriter(ByteOrder.LittleEndian, handleSRID: true, emitZ: false, emitM: false).Write(g);
@@ -168,11 +168,11 @@ public class EwkbTests
             Assert.Equal(3857, round.GetGeometryN(i).SRID);
     }
 
-    // ---------- helpers ----------
+    // ---------- ヘルパー ----------
 
     private static byte[] BuildHighBitPoint(uint typeHighBits, double[] coords, int? srid, bool le)
     {
-        // Point base type = 1, combined with PostGIS legacy high-bit flag(s).
+        // Point のベースタイプ = 1 に、PostGIS レガシーの高位ビットフラグを合わせる。
         uint type = typeHighBits | 1u;
         if (srid.HasValue) type |= EwkbFlags.Srid;
 

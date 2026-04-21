@@ -32,7 +32,7 @@ public class EdgeCaseTests
     [Fact]
     public void NegativeZero_and_NaN_M_preserved()
     {
-        // Why: -0.0 and +0.0 compare equal under `==` but differ in bit pattern; NaN is common in M.
+        // Why: -0.0 と +0.0 は `==` では等しいがビットパターンが異なる。M 座標では NaN もよく使われる。
         const string wkt = "LINESTRING M (-0.0 0 NaN, 1 2 3)";
         var g = _fast.Read(wkt);
         var flat = CoordinateAsserts.Flatten(g);
@@ -53,11 +53,11 @@ public class EdgeCaseTests
     [Fact]
     public void EWKB_srid_flag_is_accepted_and_preserved()
     {
-        // Why: EWKB (PostGIS) carries SRID via the 0x20000000 type-code high bit. ZWkbReader
-        // mirrors NTS: accept the flag and surface the SRID on the returned geometry.
-        byte[] ewkb = [0x01, 0x01, 0x00, 0x00, 0x20, 0xE6, 0x10, 0x00, 0x00, /* srid 4326 */
-                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,             /* x */
-                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];            /* y */
+        // Why: EWKB (PostGIS) はタイプコードの高位ビット 0x20000000 に SRID フラグを載せる。
+        // ZWkbReader は NTS と同じく、フラグを受理し、返すジオメトリに SRID を反映する。
+        byte[] ewkb = [0x01, 0x01, 0x00, 0x00, 0x20, 0xE6, 0x10, 0x00, 0x00, /* SRID 4326 */
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,             /* X */
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];            /* Y */
         var g = _fastWkb.Read(ewkb);
         Assert.Equal("Point", g.GeometryType);
         Assert.Equal(4326, g.SRID);

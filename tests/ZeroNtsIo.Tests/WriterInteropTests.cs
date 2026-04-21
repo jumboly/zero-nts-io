@@ -8,9 +8,9 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Full N-by-N matrix: every writer's output must be readable by every reader, producing a
-/// geometry bit-equal to the original. Catches regressions where one writer's output becomes
-/// incompatible with another implementation's reader (the realistic deployment concern).
+/// 全 Writer × 全 Reader の N×N マトリクス。どの Writer の出力も、どの Reader で読んでも
+/// 元とビット単位で等しいジオメトリに戻る必要がある。異なる実装間の相互運用性が崩れた退行を検知する
+/// （現実のデプロイで懸念される退行）。
 /// </summary>
 public class WriterInteropTests
 {

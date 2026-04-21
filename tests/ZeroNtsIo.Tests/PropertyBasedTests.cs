@@ -9,8 +9,8 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Reads generated geometries through every implementation and asserts bit-for-bit coordinate
-/// equality against the NTS oracle. Covers every geometry type × every dimension × three sizes.
+/// 生成済みジオメトリを全実装で読み、NTS オラクルと座標をビット単位で比較する。
+/// 全ジオメトリ型 × 全次元 × 3 サイズをカバーする。
 /// </summary>
 public class PropertyBasedTests
 {
@@ -20,8 +20,8 @@ public class PropertyBasedTests
     private static readonly NtsWktReader NtsWkt = new(Samples.Services);
     private static readonly NtsWkbReader NtsWkb = new(Samples.Services);
 
-    // Why: the custom double parser (FastDoubleParser) can round differently from BCL by up to
-    // 1 ULP; V1 and Naive use BCL directly and are 0 ULP. WKB has no text parsing so 0 ULP everywhere.
+    // Why: カスタム double パーサ (FastDoubleParser) は BCL と最大 1 ULP まで丸めが異なり得る。
+    // V1 と Naive は BCL をそのまま使うため 0 ULP。WKB はテキスト解析が無いので常に 0 ULP。
     private static readonly (string Name, Func<string, Geometry> Read, long Ulp)[] WktReaders =
     [
         ("Naive", new NaiveWktReader(Samples.Services).Read, 0),

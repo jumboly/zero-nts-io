@@ -8,9 +8,9 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Malformed input must cause an exception (never silently return a corrupted geometry).
-/// All custom readers are expected to throw for the same inputs; the exact exception type may
-/// differ (FormatException, ArgumentOutOfRangeException, IndexOutOfRangeException, etc.).
+/// 不正な入力は必ず例外を発生させること（黙って壊れたジオメトリを返してはならない）。
+/// 全カスタム Reader が同じ入力で例外を投げることを要求する。例外型は実装により異なってよい
+/// （FormatException / ArgumentOutOfRangeException / IndexOutOfRangeException など）。
 /// </summary>
 public class MalformedInputTests
 {
@@ -31,16 +31,16 @@ public class MalformedInputTests
     }
 
     [Theory]
-    [InlineData("POINT")]                          // no body
-    [InlineData("POINT (")]                        // unclosed paren
-    [InlineData("POINT 1 2)")]                     // missing open paren
-    [InlineData("POINT (1)")]                      // only 1 ordinate
-    [InlineData("POINT (1 2")]                     // missing close paren
-    [InlineData("NOTAGEOM (1 2)")]                 // unknown keyword
-    [InlineData("POINT (foo bar)")]                // non-numeric
-    [InlineData("POLYGON ((0 0, 1 0, 1 1, 0 0)")]  // unclosed outer
-    [InlineData("")]                               // empty input
-    [InlineData("   ")]                            // whitespace only
+    [InlineData("POINT")]                          // 本体無し
+    [InlineData("POINT (")]                        // 閉じ括弧無し
+    [InlineData("POINT 1 2)")]                     // 開き括弧無し
+    [InlineData("POINT (1)")]                      // ordinate が 1 つしかない
+    [InlineData("POINT (1 2")]                     // 閉じ括弧無し
+    [InlineData("NOTAGEOM (1 2)")]                 // 未知のキーワード
+    [InlineData("POINT (foo bar)")]                // 非数値
+    [InlineData("POLYGON ((0 0, 1 0, 1 1, 0 0)")]  // 外周の閉じ括弧無し
+    [InlineData("")]                               // 空入力
+    [InlineData("   ")]                            // 空白のみ
     public void Malformed_wkt_throws(string wkt)
     {
         foreach (var read in WktReaders())
@@ -50,11 +50,11 @@ public class MalformedInputTests
     }
 
     [Theory]
-    [InlineData(new byte[] { })]                                            // empty
-    [InlineData(new byte[] { 1 })]                                          // only byte order
-    [InlineData(new byte[] { 2, 1, 0, 0, 0 })]                              // invalid byte order byte
-    [InlineData(new byte[] { 1, 99, 0, 0, 0 })]                             // unknown geometry type
-    [InlineData(new byte[] { 1, 1, 0, 0, 0, 0, 0, 0 })]                     // Point truncated (needs 16 bytes of doubles)
+    [InlineData(new byte[] { })]                                            // 空
+    [InlineData(new byte[] { 1 })]                                          // byte order のみ
+    [InlineData(new byte[] { 2, 1, 0, 0, 0 })]                              // 不正な byte order バイト
+    [InlineData(new byte[] { 1, 99, 0, 0, 0 })]                             // 未知のジオメトリ型
+    [InlineData(new byte[] { 1, 1, 0, 0, 0, 0, 0, 0 })]                     // Point の座標 16 バイトが途中で切れている
     public void Malformed_wkb_throws(byte[] wkb)
     {
         foreach (var read in WkbReaders())
@@ -66,12 +66,12 @@ public class MalformedInputTests
     [Fact]
     public void Ewkb_srid_flag_is_rejected_by_strict_ogc_readers()
     {
-        // Why: Naive / stage V1 readers are educational baselines that stay strict-OGC. The public
-        // ZWkbReader accepts EWKB — its positive-path coverage lives in EwkbTests.
+        // Why: Naive / stage V1 Reader は教材用のベースラインで、厳密 OGC を維持する。
+        // 公開版 ZWkbReader は EWKB を受理する（正常系のカバレッジは EwkbTests に置いている）。
         byte[] ewkb =
         [
             0x01,                                           // LE
-            0x01, 0x00, 0x00, 0x20,                         // type 1 | 0x20000000 (SRID flag)
+            0x01, 0x00, 0x00, 0x20,                         // type 1 | 0x20000000（SRID フラグ）
             0xE6, 0x10, 0x00, 0x00,                         // SRID 4326
             0, 0, 0, 0, 0, 0, 0, 0,                         // X
             0, 0, 0, 0, 0, 0, 0, 0,                         // Y
@@ -83,8 +83,8 @@ public class MalformedInputTests
     [Fact]
     public void Wkb_with_negative_count_is_rejected()
     {
-        // Why: uint32 0xFFFFFFFF (treated as int -1) would allocate a huge Coordinate[] if not
-        // validated — detect and fail fast.
+        // Why: uint32 0xFFFFFFFF（int にすると -1）は検証しないと巨大な Coordinate[] を確保してしまう。
+        // 早い段階で検出して失敗させる。
         byte[] wkb =
         [
             0x01,                                           // LE

@@ -36,16 +36,16 @@ public static class FixtureSource
         NtsWkbW.Write(BuildGeometry(kind, coords, seed, ord), order);
 
     /// <summary>
-    /// Build a deterministically-seeded "realistic-shape" MultiPolygon approximating the statistical
-    /// profile of country/coastline geodata — varying ring sizes, multiple holes, and dense near-
-    /// collinear segments that the uniform-random generator does not produce.
+    /// 決定論的シードによる「現実的形状」の MultiPolygon を生成する。
+    /// 国土や海岸線データの統計的プロファイル（可変なリングサイズ・複数の穴・密な準共線セグメント）に近づけており、
+    /// 一様乱数ジェネレータでは出ないパターンを再現する。
     /// </summary>
     public static Geometry BuildRealisticShape(int seed)
     {
         var rand = new Random(seed);
         var factory = Services.CreateGeometryFactory();
 
-        // Why: three polygons at different scales mimic a mainland + midsize island + small island.
+        // Why: スケールの異なる 3 つのポリゴンで「本土 + 中規模の島 + 小島」のような構成を模倣する。
         var mainland = BuildDenseRingedPolygon(rand, factory, outer: 5_000, holes: 3, holeSize: 250);
         var island = BuildDenseRingedPolygon(rand, factory, outer: 1_500, holes: 1, holeSize: 80);
         var islet = BuildDenseRingedPolygon(rand, factory, outer: 120, holes: 0, holeSize: 0);
@@ -68,9 +68,8 @@ public static class FixtureSource
     }
 
     /// <summary>
-    /// Generate a polygonal ring whose vertex density follows a parametric curve plus small jitter —
-    /// yielding near-collinear runs (characteristic of GPS-traced boundaries) that pure uniform
-    /// random does not produce.
+    /// 頂点密度がパラメトリック曲線 + 小さな jitter に従うポリゴンリングを生成する。
+    /// 純粋な一様乱数では生まれない、GPS 由来境界線特有の準共線ラン（ほぼ一直線に並ぶ点列）を再現する。
     /// </summary>
     private static Coordinate[] MakeDenseRing(Random r, int n)
     {
@@ -79,7 +78,7 @@ public static class FixtureSource
         double cx = r.NextDouble() * 360 - 180;
         double cy = r.NextDouble() * 180 - 90;
         double baseR = 0.01 + r.NextDouble() * 5;
-        // Radial-harmonic distortion to mimic a coastline shape.
+        // 海岸線的な形状を模倣するために、放射方向に調和的な歪みを加える。
         double a1 = r.NextDouble() * 0.3;
         double a2 = r.NextDouble() * 0.15;
         int k1 = r.Next(3, 9);
@@ -88,7 +87,7 @@ public static class FixtureSource
         {
             double t = (double)i / (n - 1) * 2 * Math.PI;
             double rad = baseR * (1 + a1 * Math.Sin(k1 * t) + a2 * Math.Cos(k2 * t));
-            // Small jitter keeps the GPS-like near-collinear character without degenerate dupes.
+            // 微小な jitter を足すことで、GPS 由来の準共線性を保ちつつ、退化した重複点の発生を防ぐ。
             double jitter = (r.NextDouble() - 0.5) * baseR * 0.001;
             ring[i] = new Coordinate(cx + (rad + jitter) * Math.Cos(t), cy + (rad + jitter) * Math.Sin(t));
         }
@@ -119,7 +118,7 @@ public static class FixtureSource
 
     private static Coordinate[] GenerateRing(Random rand, int n, Ordinates ord)
     {
-        // Why: LinearRing requires >= 4 distinct points and first == last.
+        // Why: LinearRing は相異なる点が 4 つ以上必要で、先頭と末尾が同一でなければならない。
         if (n < 4) n = 4;
         var ring = new Coordinate[n];
         for (int i = 0; i < n - 1; i++) ring[i] = MakeCoord(rand, ord);
@@ -129,8 +128,8 @@ public static class FixtureSource
 
     private static Polygon BuildPolygonWithHoles(Random rand, GeometryFactory factory, int totalCoords, Ordinates ord)
     {
-        // Why: split the budget so the outer ring gets half and three interior rings share the rest.
-        // This exercises the per-ring loop (V3's ArrayPool<LinearRing>) on non-trivial hole counts.
+        // Why: 座標予算を分配し、外周リングに半分、残りを 3 本の内周リングで共有する。
+        // これにより、単純でない穴の本数で per-ring ループ（V3 の ArrayPool<LinearRing>）を通せる。
         int holes = 3;
         int outer = Math.Max(4, totalCoords / 2);
         int perHole = Math.Max(4, (totalCoords - outer) / holes);
@@ -152,8 +151,8 @@ public static class FixtureSource
 
     private static GeometryCollection BuildGeometryCollection(Random rand, GeometryFactory factory, int totalCoords, Ordinates ord)
     {
-        // Why: a realistic mix — one big LineString, one polygon, a handful of points — so parsers
-        // hit the recursive GeometryCollection path with varied child types.
+        // Why: 大きい LineString 1 本 + Polygon 1 本 + 少数の Point、という現実的な混在構成。
+        // 各パーサが、複数種の子を持つ GeometryCollection の再帰経路を通るようにする。
         int lsCoords = Math.Max(4, totalCoords / 2);
         int polyCoords = Math.Max(4, totalCoords / 4);
         int pointCount = Math.Max(1, totalCoords / 32);

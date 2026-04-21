@@ -3,9 +3,8 @@ using NetTopologySuite.Geometries;
 namespace ZeroNtsIo.Tests.Fixtures;
 
 /// <summary>
-/// Seeded random geometry generator.
-/// Every call with the same (kind, seed, ord, count) is bit-reproducible — required because
-/// tests compare bit-for-bit against NTS output.
+/// シード付きの乱数ジオメトリジェネレータ。
+/// (kind, seed, ord, count) が同じなら出力はビット単位で再現される — NTS 出力とのビット比較が必須のため。
 /// </summary>
 public static class GeometryGenerator
 {
@@ -32,8 +31,8 @@ public static class GeometryGenerator
 
     public static IEnumerable<object[]> CombinationMatrix()
     {
-        // Why: picked so every reader touches (a) short/long paths, (b) all ordinate layouts,
-        // (c) every top-level geometry type, including the recursive GeometryCollection cases.
+        // Why: 全 Reader が (a) 短い/長い経路、(b) 全 ordinate レイアウト、
+        // (c) 再帰的な GeometryCollection を含むトップレベル全ジオメトリ型、を通るように選んでいる。
         string[] kinds =
         [
             "Point", "LineString", "Polygon", "PolygonWithHoles",
@@ -139,7 +138,7 @@ public static class GeometryGenerator
 
     private static GeometryCollection MakeNested(Random r, Ordinates ord, int coords)
     {
-        // Why: nested GeometryCollection is spec-legal but trips implementations that don't recurse.
+        // Why: 入れ子の GeometryCollection は仕様上合法だが、再帰処理しない実装では破綻するケース。
         int each = Math.Max(4, coords / 4);
         var inner = Factory.CreateGeometryCollection(new Geometry[]
         {

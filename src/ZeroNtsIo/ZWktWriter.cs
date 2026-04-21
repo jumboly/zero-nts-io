@@ -6,14 +6,14 @@ using NetTopologySuite.Geometries;
 namespace ZeroNtsIo;
 
 /// <summary>
-/// WKT writer that formats each ordinate via <c>double.TryFormat</c> into a stack-allocated span
-/// and appends it directly, bypassing <c>string</c> allocations per coordinate.
+/// WKT Writer。各 ordinate を <c>double.TryFormat</c> でスタック上の span へ整形してから直接追記し、
+/// 座標毎の <c>string</c> 確保を回避する。
 /// </summary>
 public sealed class ZWktWriter
 {
     public string Write(Geometry geometry)
     {
-        // Why: rough upper bound — ~30 chars per ordinate and up to 4 ordinates per coord.
+        // Why: 大まかな上限見積り。ordinate 1 つあたり約 30 文字、座標 1 点あたり最大 4 ordinates。
         var sb = new StringBuilder(capacity: Math.Max(32, geometry.NumPoints * 120));
         WriteGeometry(sb, geometry);
         return sb.ToString();

@@ -6,8 +6,8 @@ using Xunit;
 namespace ZeroNtsIo.Tests;
 
 /// <summary>
-/// Smoke tests for the released <see cref="ZWktReader"/> / <see cref="ZWkbReader"/> API.
-/// Broader coverage lives in PropertyBasedTests and WriterInteropTests.
+/// 公開版 <see cref="ZWktReader"/> / <see cref="ZWkbReader"/> API の smoke テスト。
+/// 広範なカバレッジは PropertyBasedTests と WriterInteropTests に置いている。
 /// </summary>
 public class ZReaderTests
 {

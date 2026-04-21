@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 
 namespace ZeroNtsIo.Stages;
 
-/// <summary>V1: Span-based parsing with standard <see cref="double.TryParse(ReadOnlySpan{char}, IFormatProvider, out double)"/>.</summary>
+/// <summary>V1: span ベースの解析。double 変換は標準の <see cref="double.TryParse(ReadOnlySpan{char}, IFormatProvider, out double)"/> をそのまま使う。</summary>
 public sealed class ZWktReaderV1
 {
     private readonly GeometryFactory _factory;
@@ -53,8 +53,7 @@ public sealed class ZWktReaderV1
 
     private static int ReadTypeKeyword(ref WktCursor c)
     {
-        // Why: keyword matching via switch on first char narrows candidates to O(1), avoiding
-        // string allocations for the type name.
+        // Why: 先頭文字での switch でキーワード候補を O(1) に絞れば、型名用の string 確保を回避できる。
         c.SkipWhitespace();
         var w = c.ReadWord();
         if (w.Equals("POINT", StringComparison.OrdinalIgnoreCase)) return 1;

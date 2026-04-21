@@ -9,8 +9,8 @@ using NetTopologySuite.IO;
 namespace ZeroNtsIo;
 
 /// <summary>
-/// Zero-copy WKB writer. For <see cref="PackedDoubleCoordinateSequence"/> inputs, the underlying
-/// <c>double[]</c> is reinterpreted as bytes and copied in one shot (LE) or SIMD byte-swapped (BE).
+/// ゼロコピー WKB Writer。<see cref="PackedDoubleCoordinateSequence"/> 入力に対しては、
+/// 内部の <c>double[]</c> をバイト列として再解釈し、LE なら一括コピー、BE なら SIMD バイトスワップで出力する。
 /// </summary>
 public sealed class ZWkbWriter
 {
@@ -21,10 +21,10 @@ public sealed class ZWkbWriter
     {
         var bw = new ArrayBufferWriter<byte>(EstimateSize(geometry));
         bool le = byteOrder == ByteOrder.LittleEndian;
-        // Why: EWKB carries the SRID on the root type only; children share the parent's SRID. Passing
-        // srid=0 into nested WriteGeometry calls suppresses the flag on children, matching NTS output.
-        // SRIDs are positive EPSG codes; NTS defaults uninitialized Geometry.SRID to -1, so check >0
-        // to avoid emitting a bogus flag for factory-default geometries.
+        // Why: EWKB では SRID はルートのタイプコードにのみ付け、子は親の SRID を共有する。
+        // 入れ子の WriteGeometry 呼び出しに srid=0 を渡すことで子側のフラグを抑制し、NTS の出力と一致させる。
+        // SRID は正の EPSG コード。NTS は未初期化 Geometry.SRID を -1 とするため、
+        // factory デフォルトのジオメトリで無効な SRID フラグを出さないよう >0 で判定する。
         int srid = handleSRID && geometry.SRID > 0 ? geometry.SRID : 0;
         WriteGeometry(bw, geometry, le, srid);
         return bw.WrittenSpan.ToArray();
@@ -34,9 +34,9 @@ public sealed class ZWkbWriter
     {
         var (baseType, seq) = Classify(g);
         var (ordCode, dim) = OrdinateOf(seq);
-        // Why: NTS suppresses the Z/M offset on the MultiPoint header only (historical SFS
-        // convention) — MultiLineString, MultiPolygon, and GeometryCollection still carry the
-        // dimension offset. Matching NTS exactly is required for byte-level interop.
+        // Why: NTS は MultiPoint のヘッダだけ Z/M オフセットを付けない（SFS-1.1 の歴史的慣習）。
+        // MultiLineString / MultiPolygon / GeometryCollection は通常通り次元オフセットを付ける。
+        // バイト単位の相互運用には NTS 準拠の挙動が必須。
         bool suppressOrdOffset = g is MultiPoint;
         uint typeCode = (uint)baseType + (suppressOrdOffset ? 0u : ordCode * 1000u);
         if (srid != 0) typeCode |= EwkbFlags.Srid;
@@ -104,9 +104,9 @@ public sealed class ZWkbWriter
         WriteUInt32(bw, (uint)n, le);
         if (n == 0) return;
 
-        // Why: PackedDoubleCoordinateSequence holds ordinates as a contiguous double[] matching
-        // the OGC WKB-LE byte layout, so on LE targets we can emit the entire coord block in one
-        // byte copy; on BE we SIMD byte-swap through CoordinateBlockReader.
+        // Why: PackedDoubleCoordinateSequence は ordinates を連続した double[] で保持しており、
+        // OGC WKB-LE のバイトレイアウトと一致する。そのため LE ターゲットでは座標ブロック全体を 1 回の
+        // バイトコピーで出力でき、BE では CoordinateBlockReader で SIMD バイトスワップする。
         if (seq is PackedDoubleCoordinateSequence pdc && pdc.Dimension == dim)
         {
             var raw = pdc.GetRawCoordinates();
@@ -190,7 +190,7 @@ public sealed class ZWkbWriter
 
     private static int EstimateSize(Geometry g)
     {
-        // Why: rough upper bound — 1 + 4 header + 4 count per sub-part + 8 bytes per ordinate.
+        // Why: 大まかな上限見積り。1 バイト + 4 バイトヘッダ + サブパート毎 4 バイトのカウント + ordinate 毎 8 バイト。
         int coords = g.NumPoints;
         return 64 + coords * 32;
     }

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace ZeroNtsIo.Internal;
 
-/// <summary>Growable <c>double[]</c> buffer backed by <see cref="ArrayPool{T}"/>.</summary>
+/// <summary><see cref="ArrayPool{T}"/> を利用した可変長 <c>double[]</c> バッファ。</summary>
 internal struct PooledDoubleBuffer : IDisposable
 {
     private double[] _buf;

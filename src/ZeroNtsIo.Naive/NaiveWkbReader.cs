@@ -29,7 +29,7 @@ public sealed class NaiveWkbReader
         bool le = bo == 1;
 
         uint rawType = ReadUInt32(br, le);
-        // Why: reject EWKB. OGC ISO uses only the low bits (1..7) plus a 1000/2000/3000 offset.
+        // Why: EWKB は拒否する。OGC ISO では下位ビット (1..7) と 1000/2000/3000 オフセットのみを使用する。
         if ((rawType & 0xE0000000u) != 0)
             throw new FormatException("EWKB (PostGIS SRID/Z/M high-bit flags) is not supported; use OGC ISO WKB.");
 
@@ -61,7 +61,7 @@ public sealed class NaiveWkbReader
     private Point ReadPoint(BinaryReader br, bool le, Ordinates ord, int dim)
     {
         var coord = ReadCoord(br, le, ord);
-        // Why: OGC encodes POINT EMPTY as all-NaN ordinates.
+        // Why: OGC 仕様では POINT EMPTY は全 ordinates が NaN としてエンコードされる。
         if (double.IsNaN(coord.X) && double.IsNaN(coord.Y))
             return _factory.CreatePoint((Coordinate?)null);
         return _factory.CreatePoint(coord);

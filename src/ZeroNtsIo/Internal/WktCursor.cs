@@ -91,8 +91,8 @@ internal ref struct WktCursor
         var s = Source;
         int p = start;
         if (p < s.Length && (s[p] == '+' || s[p] == '-')) p++;
-        // Why: NTS writes NaN and Infinity values as "NaN" / "Infinity" in WKT (common for M
-        // coordinates and EMPTY POINTs). Capture the literal so the parser can handle it.
+        // Why: NTS は NaN や Infinity を WKT 中に "NaN" / "Infinity" のリテラルで出力する
+        // （M 座標や EMPTY POINT で頻出）。パーサが扱えるよう、リテラルとして取り込む。
         if (p < s.Length && IsLetter(s[p]))
         {
             while (p < s.Length && IsLetter(s[p])) p++;

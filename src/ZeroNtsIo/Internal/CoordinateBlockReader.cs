@@ -6,13 +6,14 @@ using System.Runtime.Intrinsics;
 namespace ZeroNtsIo.Internal;
 
 /// <summary>
-/// Fast path for copying WKB coordinate blocks into a <c>double[]</c>.
-/// LE = zero-cost reinterpret; BE = 16-byte SIMD byte-swap via <see cref="Vector128.Shuffle"/>.
+/// WKB 座標ブロックを <c>double[]</c> へコピーする高速経路。
+/// LE はコスト 0 の再解釈、BE は <see cref="Vector128.Shuffle"/> による 16 バイト単位の SIMD バイトスワップ。
 /// </summary>
 internal static class CoordinateBlockReader
 {
-    // Why: Vector128.Shuffle does a per-lane byte permutation. This mask reverses bytes within
-    // each 8-byte half of a 16-byte vector, so one call swaps endianness of 2 packed doubles.
+    // Why: Vector128.Shuffle はレーン毎のバイト並び替えを行う。このマスクは 16 バイトベクタの
+    // 前半・後半それぞれ 8 バイト内でバイト順を反転させるため、1 回の呼び出しで packed double 2 個分の
+    // バイト順を入れ替えられる。
     private static readonly Vector128<byte> SwapDoubleMask = Vector128.Create(
         (byte)7, 6, 5, 4, 3, 2, 1, 0,
               15, 14, 13, 12, 11, 10, 9, 8);
@@ -20,8 +21,8 @@ internal static class CoordinateBlockReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ReadLittleEndian(ReadOnlySpan<byte> src, Span<double> dst)
     {
-        // Why: the WKB-LE byte layout IS the PackedDoubleCoordinateSequence in-memory layout on
-        // any little-endian machine; a raw byte copy is exactly what's needed.
+        // Why: little-endian マシン上では WKB-LE のバイトレイアウトがそのまま
+        // PackedDoubleCoordinateSequence のメモリレイアウトと一致するため、raw バイトコピーだけで十分。
         src.Slice(0, dst.Length * sizeof(double)).CopyTo(MemoryMarshal.AsBytes(dst));
     }
 
